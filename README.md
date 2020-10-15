@@ -181,24 +181,25 @@ For a distributed environment, we need to store similar prefix hash map on diffe
 
 For a large data set, one node in the cluster won't be able to hold the entire *Trie* hence we could split the *Trie* based on prefix range. For example, prefixes that start with *A* to *H* could be stored on node 1 and prefixes that start with *I* to *P* on node 2 and from *Q* to *Z* on node N and so on. This could further be split on more than one prefix range like node 1 holding range from prefix *aa-am* & node 2 holding *an - az* etc.
 
-### Expanding Our Persistence Strategy
+### Persistence Strategy
 
-Keeping all of the data in memory may quickly become expensive. Further, not all prefixes actually need to be in memory all the time. So why not keep only fresh prefixes in memory while persisting stale prefixes on disk? As such, I decided to treat Redis in a cache-like manner by setting an LRU eviction policy in Redis. So now Redis will hold only the most recently used prefixes and once max memory is reached, Redis will evict the least recently used prefixes.
+As the usage of the app grows, keeping all of the data in memory may quickly become expensive. Further, not all prefixes actually need to be in memory all the time. So why not keep only fresh prefixes in memory while persisting stale prefixes on disk? Hence Redis could be treated like a pure cache by setting an LRU eviction policy in Redis. So now Redis can hold only the most recently used prefixes and once max memory is reached, Redis will evict the least recently used prefixes.
 
 ### Using MongoDB for Persistence
 
 For hard disk persistence, i am leeaning for MongoDB. I chose MongoDB primarily because its key-document metaphor mapped nicely to the key-value setup of Redis. Having similar models of abstraction between data stores is convenient, because it makes the persistence process easier to reason about.
 
-### Read flow 
+### Dealing with a Redis cache miss (read path)
 
-Always first check in the cache, if present return the list of auto-suggestions for a given prefix immediatly. If not present, then fetch it from the database and write it to cache.
+When there is a request for auto-suggestions based on a prefix, we first check Redis. Redis will usually have what we’re looking for due to the efficacy of the LRU policy. So in most cases, we can return results after just a single call to Redis. But in case we can’t find our data in Redis, we now check against the complete set of prefixes in MongoDB. Once we find what we’re looking for in MongoDB, we then write that data back into Redis. We do this because someone recently searched for the data, so technically it’s no longer stale.
 
-### Write flow
+### Incrementing completions (write path)
 
-Always write to database first, then write to cache. Even if writing in redis fails the entry would be subsequently written to cache with read flow.
+When incrementing the score of the completion, first score would be incremented in redis and then written asynchronously in MongoDB. Some retry mechanisms would be put in place for cases when write to MongoDB fails.
 
-*Cache invalidation* - Redis would be configured to use LRU eviction policy. So when the cache is full, it would evict the least recently used entries.
+I have already coded *Trie* data structure logic. The relevant classes related to *Trie* are *Trie.java*, *TrieBuilder.java*, *TrieNode.java*, *Suggestion.java*.
 
+That's all for now... Thank you for reading...!!!
 
 
 
