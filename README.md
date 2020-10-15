@@ -116,11 +116,11 @@ React is used to implement landing page of typeahead functionality.
 
 There are numerous popular Javascript frameworks out there like *Angular*, *Vue.js*, *Meteor* and many others. So obvious question is why *React* over others.
 
-* Learning curve of other Javascript frameworks is steeper than React. React is extremely easy to learn. To start with this craft demonstration implementation, I did not know anything about React but within 3 days I was able to learn it and develop the entire UI with it.
-
 * React is lightening fast. React uses virtual DOM to efficiently handle update of real html DOM. Updating html DOM is a very costly operation and majority of the slowness of page rendering comes from the time spent in updating DOM and then rendering it in the UI. Whenever react has to render any element on the UI, it compares earlier virtual DOM with the new virtual DOM and only makes those real DOM element updates that are absolutely necessary and hence it is very fast and one can experience it while developing it with React 
 
 * React inherently supports modular and writing cleaner code. It is built from ground up on the core foundation of creating components that can work together independently. React actually nudges you towards thinking in terms of visualizing, building and managing components. Designing with React is very similar to designing using OOPs concept wherein you take into account individual components, their interaction with each other, their state transition, their individual performance etc
+
+* Learning curve of other Javascript frameworks is steeper than React. React is extremely easy to learn. To start with this craft demonstration implementation, I did not know anything about React but within 3 days I was able to learn it and develop the entire UI with it.
 
 Hence it was not a difficult choice to go with React JS for typeahead UI development
 
@@ -161,7 +161,7 @@ In both of these cases, when <code>/collect-phrases</code> end point is hit, it 
 
 ## Alternate System Design Option
 
-I was contemlating one more way to solve typeahead requirement efficiently. In cases like this when there are 2 promising approaches, I most often do a quick POC with both the approaches and then based on data points choose one over the other. I did not get enough time to finish the POC for this second approach. Nnevertheless I manage to one critical component code complete. It is already in Github to review.
+There is one more very efficient approach to solve typeahead requirement efficiently. Typically I would do a quick POC with both the approaches and then based on data points choose one over the other. I did not get enough time to finish the POC for this second approach. Nnevertheless I have one critical component fully coded and working. It is already in Github for review.
 
 In this second approach,  
 
@@ -181,6 +181,6 @@ For a distributed environment, we need to store similar prefix hash map on diffe
 
 For a large data set, one node in the cluster won't be able to hold the entire *Trie* hence we could split the *Trie* based on prefix range. For example, prefixes that start with *A* to *H* could be stored on node 1 and prefixes that start with *I* to *P* on node 2 and from *Q* to *Z* on node N and so on. This could further be split on more than one prefix range like node 1 holding range from prefix *aa-am* & node 2 holding *an - az* etc.
 
-Since Redis stores these in memory, we need a persistent storage and that is when Mongo DB enters in. 
+Since Redis stores these in memory, we need a persistent storage. RDBMS would not be a good fit because for storing *Trie* in a HashMap, we would be storing it in a denormalized form. Meaning, there would be data duplication. In above example, for the prefix *pa* and *p*, both would contain common completions like *Pass*, *Past* and *Part* as values in the map. We are trading space for lightening fast speed of retrieval from Hash map i:e O(1) time complexity. Hence storing this    
 
 
