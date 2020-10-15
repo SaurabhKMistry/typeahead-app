@@ -6,7 +6,6 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
@@ -19,6 +18,7 @@ import java.util.List;
 
 import static com.auto.complete.typeahead.TypeaheadPropertyKeys.*;
 import static org.apache.commons.collections4.ListUtils.partition;
+import static org.apache.http.impl.client.HttpClients.createDefault;
 
 @Slf4j
 /**
@@ -52,6 +52,9 @@ public class ElasticSearchDataLoader {
 	}
 
 	public void loadDataFromFile() throws Exception {
+		// sleep for 10 sec to allow elastic search to start up
+		Thread.sleep(10_000);
+
 		createIndexInElasticSearch();
 
 		log.info("Starting to index elastic search data for the index [" + esIndexName + "]");
@@ -60,17 +63,17 @@ public class ElasticSearchDataLoader {
 
 		int documentBatchSize = 10_000;
 		List<List<String>> partitionedList = partition(documentList, documentBatchSize);
+
 		try {
+			URL url = new URL(elasticsearchBulkEndpoint);
+			conn = (HttpURLConnection) url.openConnection();
+			conn.setDoOutput(true);
+			conn.setRequestMethod("POST");
+			conn.setRequestProperty("Content-Type", "application/json");
+			OutputStream os = conn.getOutputStream();
+
 			for (List<String> columnSubList : partitionedList) {
 				String s = String.join("", columnSubList);
-
-				URL url = new URL(elasticsearchBulkEndpoint);
-				conn = (HttpURLConnection) url.openConnection();
-				conn.setDoOutput(true);
-				conn.setRequestMethod("POST");
-				conn.setRequestProperty("Content-Type", "application/json");
-
-				OutputStream os = conn.getOutputStream();
 				os.write(s.getBytes());
 				os.flush();
 				if (conn.getResponseCode() != HttpURLConnection.HTTP_OK) {
@@ -93,19 +96,22 @@ public class ElasticSearchDataLoader {
 		String indexSettings = readCreateIndexPayloadFromFile();
 		for (int i = 0; i < retryCount; i++) {
 			try {
-				CloseableHttpClient httpclient = HttpClients.createDefault();
-				HttpPut httpPut = new HttpPut(esIndexEndPoint);
-				httpPut.setHeader("Accept", "application/json");
-				httpPut.setHeader("Content-type", "application/json");
-				StringEntity stringEntity = new StringEntity(indexSettings);
-				httpPut.setEntity(stringEntity);
-				CloseableHttpResponse httpResponse = httpclient.execute(httpPut);
+				CloseableHttpResponse httpResponse;
+				try (CloseableHttpClient httpclient = createDefault()) {
+					HttpPut httpPut = new HttpPut(esIndexEndPoint);
+					httpPut.setHeader("Accept", "application/json");
+					httpPut.setHeader("Content-type", "application/json");
+					StringEntity stringEntity = new StringEntity(indexSettings);
+					httpPut.setEntity(stringEntity);
+					httpResponse = httpclient.execute(httpPut);
+				}
 				if (httpResponse.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-					log.info("created index in elastic search");
+					log.info("Created index in elastic search");
 					break;
 				}
 			} catch (Exception e) {
-				Thread.sleep(2000);
+				// sleep for 2 secs before index creation.
+				Thread.sleep(2_000);
 			}
 		}
 	}
