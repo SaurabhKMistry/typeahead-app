@@ -181,13 +181,23 @@ For a distributed environment, we need to store similar prefix hash map on diffe
 
 For a large data set, one node in the cluster won't be able to hold the entire *Trie* hence we could split the *Trie* based on prefix range. For example, prefixes that start with *A* to *H* could be stored on node 1 and prefixes that start with *I* to *P* on node 2 and from *Q* to *Z* on node N and so on. This could further be split on more than one prefix range like node 1 holding range from prefix *aa-am* & node 2 holding *an - az* etc.
 
-We are using Redis as a distributed hash map (key-value pair cache). In case of cache miss request would be served from database and put on the cache so that there are no subsequent cache miss.
+### Expanding Our Persistence Strategy
 
-*Read flow* - Always first check in the cache, if present return the list of auto-suggestions for a given prefix immediatly. If not present, then fetch it from the database and put it in the cache.
+Keeping all of the data in memory may quickly become expensive. Further, not all prefixes actually need to be in memory all the time. So why not keep only fresh prefixes in memory while persisting stale prefixes on disk? As such, I decided to treat Redis in a cache-like manner by setting an LRU eviction policy in Redis. So now Redis will hold only the most recently used prefixes and once max memory is reached, Redis will evict the least recently used prefixes.
 
-*Write flow* - Always write to database first, then put it in the cache. Even if writing in redis fails the entry would be subsequently written with read flow.
+### Using MongoDB for Persistence
 
-*Cache invalidation* - 
+For hard disk persistence, i am leeaning for MongoDB. I chose MongoDB primarily because its key-document metaphor mapped nicely to the key-value setup of Redis. Having similar models of abstraction between data stores is convenient, because it makes the persistence process easier to reason about.
+
+### Read flow 
+
+Always first check in the cache, if present return the list of auto-suggestions for a given prefix immediatly. If not present, then fetch it from the database and write it to cache.
+
+### Write flow
+
+Always write to database first, then write to cache. Even if writing in redis fails the entry would be subsequently written to cache with read flow.
+
+*Cache invalidation* - Redis would be configured to use LRU eviction policy. So when the cache is full, it would evict the least recently used entries.
 
 
 
