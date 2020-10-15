@@ -144,7 +144,7 @@ that there is no data loss.
 Also ES snapshots are taken on Amazon S3 on regular basis so this also adds final guard against data loss.
 
 ## Typeahead deployment diagram
-<img src="https://github.com/SaurabhKMistry/typeahead-app/blob/master/images/Typeahead-Deployment-Diagram.jpeg">
+<img src="https://github.com/SaurabhKMistry/typeahead-app/blob/master/images/Typeahead-Deployment-Diagram.jpeg" height="740px" width="580px">
 
 
 ## Typeahead Aggregator
