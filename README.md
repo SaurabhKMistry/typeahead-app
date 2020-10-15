@@ -62,7 +62,7 @@ The components in color coded with green are the ones implemented for MVP. In th
 
 ### Step 1
 
-Clone the source code available at https://github.com/skmistry/typeahead-react-spring-boot.git
+Clone the source code available at https://github.com/SaurabhKMistry/typeahead-app.git
 
 You should see a following directory structure,
 
