@@ -1,7 +1,8 @@
 package com.auto.complete.typeahead.util;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -14,12 +15,10 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import static com.auto.complete.typeahead.TypeaheadPropertyKeys.*;
 import static org.apache.commons.collections4.ListUtils.partition;
-import static org.apache.commons.io.FileUtils.listFiles;
 
 @Slf4j
 /**
@@ -52,7 +51,7 @@ public class ElasticSearchDataLoader {
 		elasticsearchBulkEndpoint = esIndexEndPoint + "/_doc/_bulk";
 	}
 
-	public void loadDataFromFile() throws IOException {
+	public void loadDataFromFile() throws Exception {
 		createIndexInElasticSearch();
 
 		log.info("Starting to index elastic search data for the index [" + esIndexName + "]");
@@ -89,31 +88,35 @@ public class ElasticSearchDataLoader {
 		log.info("Completed indexing data for the index [" + esIndexName + "]");
 	}
 
-	private void createIndexInElasticSearch() throws IOException {
+	private void createIndexInElasticSearch() throws Exception {
+		int retryCount = 10;
 		String indexSettings = readCreateIndexPayloadFromFile();
-		CloseableHttpClient httpclient = HttpClients.createDefault();
-		HttpPut httpPut = new HttpPut(esIndexEndPoint);
-		httpPut.setHeader("Accept", "application/json");
-		httpPut.setHeader("Content-type", "application/json");
-
-		StringEntity stringEntity = new StringEntity(indexSettings);
-		httpPut.setEntity(stringEntity);
-		System.out.println("Executing request " + httpPut.getRequestLine());
-
-		httpclient.execute(httpPut);
-
-		log.info("created index");
+		for (int i = 0; i < retryCount; i++) {
+			try {
+				CloseableHttpClient httpclient = HttpClients.createDefault();
+				HttpPut httpPut = new HttpPut(esIndexEndPoint);
+				httpPut.setHeader("Accept", "application/json");
+				httpPut.setHeader("Content-type", "application/json");
+				StringEntity stringEntity = new StringEntity(indexSettings);
+				httpPut.setEntity(stringEntity);
+				CloseableHttpResponse httpResponse = httpclient.execute(httpPut);
+				if (httpResponse.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+					log.info("created index in elastic search");
+					break;
+				}
+			} catch (Exception e) {
+				Thread.sleep(2000);
+			}
+		}
 	}
 
 	/**
 	 * Construct the BULK POST payload for Elastic Search
 	 */
 	private List<String> readFile() throws IOException {
-		String esDataDir = "src/main/resources/elastic_search_data";
-		Collection<File> files = listFiles(new File(esDataDir), new String[]{"csv"}, true);
 		List<String> documentList = new ArrayList<>();
-		for (File file : files) {
-			InputStream is = new FileInputStream(file.getAbsolutePath());
+		for (int i = 1; i <= 10; i++) {
+			InputStream is = this.getClass().getResourceAsStream("/names_100000_data_" + i + ".csv");
 			try (BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
 				String line;
 				while ((line = br.readLine()) != null) {
