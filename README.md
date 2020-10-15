@@ -181,6 +181,14 @@ For a distributed environment, we need to store similar prefix hash map on diffe
 
 For a large data set, one node in the cluster won't be able to hold the entire *Trie* hence we could split the *Trie* based on prefix range. For example, prefixes that start with *A* to *H* could be stored on node 1 and prefixes that start with *I* to *P* on node 2 and from *Q* to *Z* on node N and so on. This could further be split on more than one prefix range like node 1 holding range from prefix *aa-am* & node 2 holding *an - az* etc.
 
-Since Redis stores these in memory, we need a persistent storage. RDBMS would not be a good fit because for storing *Trie* in a HashMap, we would be storing it in a denormalized form. Meaning, there would be data duplication. In above example, for the prefix *pa* and *p*, both would contain common completions like *Pass*, *Past* and *Part* as values in the map. We are trading space for lightening fast speed of retrieval from Hash map i:e O(1) time complexity. Hence storing this    
+We are using Redis as a distributed hash map (key-value pair cache). In case of cache miss request would be served from database and put on the cache so that there are no subsequent cache miss.
+
+*Read flow* - Always first check in the cache, if present return the list of auto-suggestions for a given prefix immediatly. If not present, then fetch it from the database and put it in the cache.
+
+*Write flow* - Always write to database first, then put it in the cache. Even if writing in redis fails the entry would be subsequently written with read flow.
+
+*Cache invalidation* - 
+
+
 
 
