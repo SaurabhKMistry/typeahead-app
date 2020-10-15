@@ -29,7 +29,7 @@ The main two APIs will be:
 The system is designed and implemented keeping in mind all of the above requirements. Hence the overall design approach that I have envisioned is extensible in a sense that every design decision made along the way is in the service of enhancing the system towards the end goal of producing large scale, distrubuted, fault tolerant and performant system.
 
 
-<img src="https://github.com/SaurabhKMistry/typeahead-app/tree/master/images/Typeahead-High-Level.jpeg">
+<img src="https://github.com/SaurabhKMistry/typeahead-app/blob/master/images/Typeahead-High-Level.jpeg">
 
 ### Details of the component diagram
 
@@ -144,7 +144,7 @@ that there is no data loss.
 Also ES snapshots are taken on Amazon S3 on regular basis so this also adds final guard against data loss.
 
 ## Typeahead deployment diagram
-<img src="https://github.com/SaurabhKMistry/typeahead-app/tree/master/images/Typeahead-Deployment-Diagram.jpeg">
+<img src="https://github.com/SaurabhKMistry/typeahead-app/blob/master/images/Typeahead-Deployment-Diagram.jpeg">
 
 
 ## Typeahead Aggregator
@@ -162,7 +162,7 @@ In both of these cases, when <code>/collect-phrases</code> end point is hit, it 
 
 Here's a trie that stores *Pot*, *Past*, *Pass* and *Part*
 
-<img src="https://github.com/SaurabhKMistry/typeahead-app/tree/master/images/Trie.svg" alt="Trie" width="350" height="250">
+<img src="https://github.com/SaurabhKMistry/typeahead-app/blob/master/images/Trie.svg">
 
 With *Trie* whenever there is a request for auto-complete based on a given prefix, we could traverse the tree character by character until we reach the last character of the prefix and then from there reach down to all the leaf nodes to arrive at possible suggestions. We could sort these suggestions based on their scores before sending it back to the UI. Please note that every leaf node in the Trie (leaf node represent a suggestion) contains a numeric score.
 
