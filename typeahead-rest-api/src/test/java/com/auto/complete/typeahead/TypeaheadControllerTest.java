@@ -1,7 +1,6 @@
 package com.auto.complete.typeahead;
 
 import com.auto.complete.typeahead.controller.TypeaheadController;
-import com.auto.complete.typeahead.domain.Suggestion;
 import com.auto.complete.typeahead.service.ElasticSearchService;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -61,23 +60,5 @@ class TypeaheadControllerTest extends TypeaheadTestBase {
 		verify(mockService).autocomplete(TYPEAHEAD_PREFIX_Q, suggestionCount);
 		assertThat(actual.size(), is(1));
 		assertThat(actual, contains(TYPEAHEAD_SUGGESTION_QBDT));
-	}
-
-	@Test
-	public void test_upsert_typeahead_suggestion() {
-		int suggestionCount = 1;
-
-		doNothing().when(mockService).upsertTypeaheadSuggestion(TYPEAHEAD_SUGGESTION_QBO);
-		when(mockService.autocomplete(TYPEAHEAD_PREFIX_QB, suggestionCount))
-				.thenReturn(of(TYPEAHEAD_SUGGESTION_QBO));
-
-		controller.upsertTypeaheadSuggestion(new Suggestion(TYPEAHEAD_SUGGESTION_QBO));
-		List<String> actual = controller.getAutoSuggestions(TYPEAHEAD_PREFIX_QB, suggestionCount);
-
-		verify(mockService).autocomplete(TYPEAHEAD_PREFIX_QB, suggestionCount);
-		verify(mockService).upsertTypeaheadSuggestion(TYPEAHEAD_SUGGESTION_QBO);
-
-		assertThat(actual.size(), is(suggestionCount));
-		assertThat(actual, contains(TYPEAHEAD_SUGGESTION_QBO));
 	}
 }
