@@ -28,6 +28,7 @@ The main two APIs will be:
 
 The system is designed and implemented keeping in mind all of the above requirements. Hence the overall design approach that I have envisioned is extensible in a sense that every design decision made along the way is in the service of enhancing the system towards the end goal of producing large scale, distrubuted, fault tolerant and performant system.
 
+
 <img src="https://github.com/SaurabhKMistry/typeahead-app/tree/master/images/Typeahead-High-Level.jpeg">
 
 ### Details of the component diagram
