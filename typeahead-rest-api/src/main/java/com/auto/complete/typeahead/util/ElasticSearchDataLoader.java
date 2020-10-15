@@ -1,6 +1,11 @@
 package com.auto.complete.typeahead.util;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
@@ -86,23 +91,25 @@ public class ElasticSearchDataLoader {
 
 	private void createIndexInElasticSearch() throws IOException {
 		String indexSettings = readCreateIndexPayloadFromFile();
-		HttpURLConnection conn = null;
-		URL url = new URL(esIndexEndPoint);
-		conn = (HttpURLConnection) url.openConnection();
-		conn.setDoOutput(true);
-		conn.setRequestMethod("PUT");
-		conn.setRequestProperty("Content-Type", "application/json");
+		CloseableHttpClient httpclient = HttpClients.createDefault();
+		HttpPut httpPut = new HttpPut(esIndexEndPoint);
+		httpPut.setHeader("Accept", "application/json");
+		httpPut.setHeader("Content-type", "application/json");
 
-		OutputStream os = conn.getOutputStream();
-		os.write(indexSettings.getBytes());
-		os.flush();
+		StringEntity stringEntity = new StringEntity(indexSettings);
+		httpPut.setEntity(stringEntity);
+		System.out.println("Executing request " + httpPut.getRequestLine());
+
+		httpclient.execute(httpPut);
+
+		log.info("created index");
 	}
 
 	/**
 	 * Construct the BULK POST payload for Elastic Search
 	 */
 	private List<String> readFile() throws IOException {
-		String esDataDir = "typeahead-rest-api/src/main/resources/elastic_search_data";
+		String esDataDir = "src/main/resources/elastic_search_data";
 		Collection<File> files = listFiles(new File(esDataDir), new String[]{"csv"}, true);
 		List<String> documentList = new ArrayList<>();
 		for (File file : files) {
