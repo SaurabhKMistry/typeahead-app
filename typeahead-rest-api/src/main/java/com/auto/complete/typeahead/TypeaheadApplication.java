@@ -48,6 +48,10 @@ public class TypeaheadApplication implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        dataLoader.loadDataFromFile();
+        try {
+            dataLoader.loadDataFromFile();
+        } catch(Exception e){
+            log.error("Could not load data. Error while loading is " + e);
+        }
     }
 }

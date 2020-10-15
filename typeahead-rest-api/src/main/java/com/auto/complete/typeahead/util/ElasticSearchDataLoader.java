@@ -53,6 +53,7 @@ public class ElasticSearchDataLoader {
 
 	public void loadDataFromFile() throws Exception {
 		// sleep for 10 sec to allow elastic search to start up
+		log.info("Sleeping for 10 secs to give elastic search time to be fully started");
 		Thread.sleep(10_000);
 
 		createIndexInElasticSearch();
@@ -94,15 +95,15 @@ public class ElasticSearchDataLoader {
 	private void createIndexInElasticSearch() throws Exception {
 		int retryCount = 10;
 		String indexSettings = readCreateIndexPayloadFromFile();
+		HttpPut httpPut = new HttpPut(esIndexEndPoint);
+		httpPut.setHeader("Accept", "application/json");
+		httpPut.setHeader("Content-type", "application/json");
+		StringEntity stringEntity = new StringEntity(indexSettings);
+		httpPut.setEntity(stringEntity);
 		for (int i = 0; i < retryCount; i++) {
 			try {
 				CloseableHttpResponse httpResponse;
 				try (CloseableHttpClient httpclient = createDefault()) {
-					HttpPut httpPut = new HttpPut(esIndexEndPoint);
-					httpPut.setHeader("Accept", "application/json");
-					httpPut.setHeader("Content-type", "application/json");
-					StringEntity stringEntity = new StringEntity(indexSettings);
-					httpPut.setEntity(stringEntity);
 					httpResponse = httpclient.execute(httpPut);
 				}
 				if (httpResponse.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
@@ -110,8 +111,13 @@ public class ElasticSearchDataLoader {
 					break;
 				}
 			} catch (Exception e) {
+				log.info("Tried " + i + " times. Sleeping for 2 secs before trying again");
 				// sleep for 2 secs before index creation.
 				Thread.sleep(2_000);
+
+				if(i == retryCount - 1){
+					throw e;
+				}
 			}
 		}
 	}
