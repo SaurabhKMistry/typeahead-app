@@ -62,7 +62,7 @@ The components in color coded with green are the ones implemented for MVP. In th
 
 ### Step 1
 
-Clone the source code available at https://github.com/skmistry/typeahead-react-spring-boot.git
+Clone the source code available at https://github.com/SaurabhKMistry/typeahead-app.git
 
 You should see a following directory structure,
 
@@ -96,6 +96,8 @@ After successful execution of this command, you should have all the services of 
 
 The status column in the result of this command should show the status of all services as *UP*
 
+As part of this step, all of one million documents are uploaded into elastic search which takes approximately 3-5 mins. So please wait for 5 mins before moving on to the next step. Since this development environment setup, runninng ES in docker container on laptop with large data takes time.
+
 ### Step 4
 
 You can interact with the system by accessing http://localhost:3000 in your browser. The search suggestions will be provided by the system as you start typing.
@@ -123,6 +125,8 @@ There are numerous popular Javascript frameworks out there like *Angular*, *Vue.
 * Learning curve of other Javascript frameworks is steeper than React. React is extremely easy to learn. To start with this craft demonstration implementation, I did not know anything about React but within 3 days I was able to learn it and develop the entire UI with it.
 
 Hence it was not a difficult choice to go with React JS for typeahead UI development
+
+For the MVP demo, I am making a rest api call for every letter typed by the user which is very fast with 1 million documents in elastic search but it must be optimized to use either built in library by twitter like *typeahead.js* or in house built which provides advanced options like prefetching auto suggestios, intelligent caching suggestions on the client side using html local storage. This would drastically reduce the number and frequenncy of network calls.
 
 ### Elastic Search (ES)
 
