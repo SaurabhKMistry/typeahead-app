@@ -124,7 +124,7 @@ There are numerous popular Javascript frameworks out there like *Angular*, *Vue.
 
 Hence it was not a difficult choice to go with React JS for typeahead UI development
 
-For the MVP demo, I am making a rest api call for every letter typed by the user which is very fast with 1 million documents in elastic search but it must be optimized to use either built in library like *typeahead.js* or in house built which provides advanced options like prefetching, intelligent caching on the client side using html local storage. This would drastically reduce the amount and frequenncy of network calls for auto-suggestions.
+For the MVP demo, I am making a rest api call for every letter typed by the user which is very fast with 1 million documents in elastic search but it must be optimized to use either built in library by twitter like *typeahead.js* or in house built which provides advanced options like prefetching auto suggestios, intelligent caching suggestions on the client side using html local storage. This would drastically reduce the number and frequenncy of network calls.
 
 ### Elastic Search (ES)
 
