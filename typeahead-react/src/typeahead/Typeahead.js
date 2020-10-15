@@ -1,6 +1,6 @@
 // Typeahead.js
 import '../index.css'
-import Messages from 'Messages.js'
+import { Messages } from './Messages'
 import React from 'react';
 
 
@@ -17,7 +17,7 @@ export default class Typeahead extends React.Component {
     let suggestions = [];
     const value = e.target.value;
     if (value.length > 0) {
-      const url = encodeURI(Messages.typeahead_api_part_1_uri + value + Messages.typeahead_api_part_2_uri);
+      const url = encodeURI(Messages.typeahead_api_part_1_uri + value + "&" + Messages.typeahead_api_part_2_uri);
       fetch(url)
         .then(res => res.json())
         .then(
