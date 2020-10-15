@@ -161,13 +161,13 @@ In both of these cases, when <code>/collect-phrases</code> end point is hit, it 
 
 ## Alternate System Design Option
 
-There is one more very efficient approach to solve typeahead requirement efficiently. Typically I would do a quick POC with both the approaches and then based on data points choose one over the other. I did not get enough time to finish the POC for this second approach. Nnevertheless I have one critical component fully coded and working. It is already in Github for review.
+There is one more very efficient approach to solve typeahead requirement. Typically I would do a quick POC with both the approaches and then based on data points choose one over the other. I did not get enough time to finish the POC for this second approach. Nevertheless I have one critical component fully coded and working. It is already in Github for review.
 
 In this second approach,  
 
-* *Trie* data structure is used as an in-memory data structuree for all possible auto completions stored in database
+* *Trie* data structure is used as an in-memory data structure for all possible auto completions stored in database
 * *MongoDB* is used as a primary persistent storage
-* *Redis* is used for caching Tries data structure on distributed servers 
+* *Redis* is used for caching Trie data structure on distributed servers 
 
 In a *Trie* data structure, each node holds a character data and if you traverse all the leaf nodes from the root, you will get the list of all auto-complete words and phrases. Here's a trie that stores *Pot*, *Past*, *Pass* and *Part*. For a prefix *pa*, all possible auto-completions from *Trie* are *Pass*, *Past* and *Part* 
 
@@ -175,7 +175,7 @@ In a *Trie* data structure, each node holds a character data and if you traverse
 
 With *Trie* whenever there is a request for auto-complete based on a given prefix, we could traverse the tree character by character until we reach the last character of the prefix and then from there reach down to all the leaf nodes to arrive at possible suggestions. We could sort these suggestions based on their scores before sending it back to the UI. Please note that every leaf node in the Trie (leaf node represent a suggestion) contains a numeric score.
 
-This works very well in single server environment. When *Trie* needs to be managed across multiple servers in a distributed manner, things get complex. To handle distrubuted setup, trie could be stored in a LinkedList powered HashMap. Something similar to *LinkedHashMap* in Java. In this linked hash map, prefix is mapped as a key and value is the linked list of strings of all possible completion for the given prefix key. Taking example of *pa* as a prefix, the hashmap would store *pa* as key and value as linked list of size 3 with each node holding a possible auto-completion (pass, past, and part). 
+This works very well in single server environment. When *Trie* needs to be managed across multiple servers in a distributed manner, things get complex. To handle distributed setup, trie could be stored in a LinkedList powered HashMap. Something similar to *LinkedHashMap* in Java. In this linked hash map, prefix is mapped as a key and value is the linked list of strings of all possible completion for the given prefix key. Taking example of *pa* as a prefix, the hashmap would store *pa* as key and value as linked list of size 3 with each node holding a possible auto-completion (pass, past, and part). 
 
 For a distributed environment, we need to store similar prefix hash map on different servers. Hence chosing Redis as it is inherently key-value store, distributed in nature, highly scalable and most importantly blazingly fast.
 
@@ -183,11 +183,11 @@ For a large data set, one node in the cluster won't be able to hold the entire *
 
 ### Persistence Strategy
 
-As the usage of the app grows, keeping all of the data in memory may quickly become expensive. Further, not all prefixes actually need to be in memory all the time. So why not keep only fresh prefixes in memory while persisting stale prefixes on disk? Hence Redis could be treated like a pure cache by setting an LRU eviction policy in Redis. So now Redis can hold only the most recently used prefixes and once max memory is reached, Redis will evict the least recently used prefixes.
+As the usage of the app grows, keeping all of the data in memory may quickly become expensive. Further, not all prefixes actually need to be in memory all the time. So why not keep only fresh prefixes in memory while persist stale prefixes on disk? Hence Redis could be treated like a pure cache by setting an LRU eviction policy in Redis. So now Redis can hold only the most recently used prefixes and once max memory is reached, Redis will evict the least recently used prefixes.
 
 ### Using MongoDB for Persistence
 
-For hard disk persistence, i am leeaning for MongoDB. I chose MongoDB primarily because its key-document metaphor mapped nicely to the key-value setup of Redis. Having similar models of abstraction between data stores is convenient, because it makes the persistence process easier to reason about.
+For hard disk persistence, I am leaning towards MongoDB. I chose MongoDB primarily because its key-document metaphor mapped nicely to the key-value setup of Redis. Having similar models of abstraction between data stores is convenient, because it makes the persistence process easier to reason about.
 
 ### Dealing with a Redis cache miss (read path)
 
@@ -196,8 +196,6 @@ When there is a request for auto-suggestions based on a prefix, we first check R
 ### Incrementing completions (write path)
 
 When incrementing the score of the completion, first score would be incremented in redis and then written asynchronously in MongoDB. Some retry mechanisms would be put in place for cases when write to MongoDB fails.
-
-With a POC on this approach and spending couple of more days would make this design quite solid taking into acccount all possible edge cases and failure scenarios. I would be finishing my POC on this approach shortly.
 
 I have already coded *Trie* data structure logic. The relevant classes related to *Trie* are *Trie.java*, *TrieBuilder.java*, *TrieNode.java*, *Suggestion.java*.
 
