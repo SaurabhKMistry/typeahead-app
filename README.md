@@ -169,16 +169,18 @@ In this second approach,
 * *MongoDB* is used as a primary persistent storage
 * *Redis* is used for caching Tries data structure on distributed servers 
 
-there is a dedicated section below regarding why I chose above 3 tech stack for this second option.
-
 In a *Trie* data structure, each node holds a character data and if you traverse all the leaf nodes from the root, you will get the list of all auto-complete words and phrases. Here's a trie that stores *Pot*, *Past*, *Pass* and *Part*. For a prefix *pa*, all possible auto-completions from *Trie* are *Pass*, *Past* and *Part* 
 
 <img src="https://github.com/SaurabhKMistry/typeahead-app/blob/master/images/Trie.svg">
 
 With *Trie* whenever there is a request for auto-complete based on a given prefix, we could traverse the tree character by character until we reach the last character of the prefix and then from there reach down to all the leaf nodes to arrive at possible suggestions. We could sort these suggestions based on their scores before sending it back to the UI. Please note that every leaf node in the Trie (leaf node represent a suggestion) contains a numeric score.
 
-This works very well in single server environment. When *Trie* needs to be managed across multiple servers in a distributed manner then things get complex. To handle distrubuted setup, trie could be stored in a LinkedList powered HashMap. Something similar to *LinkedHashMap* in Java. In this linked hash map, prefix is mapped as a key and value is the linked list of strings of all possible completion for the given prefix key. Taking example of *pa* as a prefix, the hashmap would store *pa* as key and value as linked list of size 3 with each node holding a possible auto-completion (pass, past, and part). 
+This works very well in single server environment. When *Trie* needs to be managed across multiple servers in a distributed manner, things get complex. To handle distrubuted setup, trie could be stored in a LinkedList powered HashMap. Something similar to *LinkedHashMap* in Java. In this linked hash map, prefix is mapped as a key and value is the linked list of strings of all possible completion for the given prefix key. Taking example of *pa* as a prefix, the hashmap would store *pa* as key and value as linked list of size 3 with each node holding a possible auto-completion (pass, past, and part). 
 
 For a distributed environment, we need to store similar prefix hash map on different servers. Hence chosing Redis as it is inherently key-value store, distributed in nature, highly scalable and most importantly blazingly fast.
+
+For a large data set, one node in the cluster won't be able to hold the entire *Trie* hence we could split the *Trie* based on prefix range. For example, prefixes that start with *A* to *H* could be stored on node 1 and prefixes that start with *I* to *P* on node 2 and from *Q* to *Z* on node N and so on. This could further be split on more than one prefix range like node 1 holding range from prefix *aa-am* & node 2 holding *an - az* etc.
+
+Since Redis stores these in memory, we need a persistent storage and that is when Mongo DB enters in. 
 
 
