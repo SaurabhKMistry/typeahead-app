@@ -96,6 +96,8 @@ After successful execution of this command, you should have all the services of 
 
 The status column in the result of this command should show the status of all services as *UP*
 
+As part of this step, all of one million documents are uploaded into elastic search which takes approximately 3-5 mins. So please wait for 5 mins before moving on to the next step. Since this development environment setup, runninng ES in docker container on laptop with large data takes time.
+
 ### Step 4
 
 You can interact with the system by accessing http://localhost:3000 in your browser. The search suggestions will be provided by the system as you start typing.
