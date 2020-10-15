@@ -1,0 +1,97 @@
+# Docker Compose file Reference (https://docs.docker.com/compose/compose-file/)
+
+version: '3.7'
+
+# Define services
+services:
+  lb:
+    build:
+      context: nginx
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    restart: always  
+    tty: true
+    depends_on:
+      - service1
+      - service2
+    networks:
+      - typeahead-network
+
+    # Frontend Service 
+  react:
+    build:
+      context: typeahead-react # Use an image built from the specified dockerfile in the `polling-app-client` directory.
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000" # Map the exposed port 80 on the container to port 9090 on the host machine
+    restart: always
+    tty: true
+    depends_on:
+      - lb
+    networks:
+      - typeahead-network
+  
+  # App backend service
+  service1:
+    # Configuration for building the docker image for the backend service
+    build:
+      context: typeahead-rest-api # Use an image built from the specified dockerfile in the `polling-app-server` directory.
+      dockerfile: Dockerfile
+    ports:
+      - "8181:8080" # Forward the exposed port 8080 on the container to port 8080 on the host machine
+    restart: always  
+    tty: true
+    links:
+      - es
+    depends_on:
+      - es 
+    networks: # Networks to join (Services on the same network can communicate with each other using their name)
+      - typeahead-network
+
+  service2:
+    # Configuration for building the docker image for the backend service
+    build:
+      context: typeahead-rest-api # Use an image built from the specified dockerfile in the `polling-app-server` directory.
+      dockerfile: Dockerfile
+    ports:
+      - "8282:8080" # Forward the exposed port 8080 on the container to port 8080 on the host machine
+    restart: always  
+    tty: true 
+    links:
+      - es
+    depends_on:
+      - es
+    networks: # Networks to join (Services on the same network can communicate with each other using their name)
+      - typeahead-network
+
+  es:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.9.2
+    container_name: es
+    environment:
+      - xpack.security.enabled=false
+      - discovery.type=single-node
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    cap_add:
+      - IPC_LOCK
+    volumes:
+      - es-data:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+      - 9300:9300
+    networks:
+      - typeahead-network
+
+volumes:
+  es-data:
+    driver: local
+
+# Networks to be created to facilitate communication between containers
+networks:
+  typeahead-network:

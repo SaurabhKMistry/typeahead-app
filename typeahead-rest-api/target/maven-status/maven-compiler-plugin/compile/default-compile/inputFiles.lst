@@ -1,0 +1,12 @@
+/Users/crao/Documents/Work/Codebase/osr/typeahead-react-spring-boot/typeahead-rest-api/src/main/java/com/auto/complete/typeahead/exception/TypeaheadError.java
+/Users/crao/Documents/Work/Codebase/osr/typeahead-react-spring-boot/typeahead-rest-api/src/main/java/com/auto/complete/typeahead/domain/TrieEntity.java
+/Users/crao/Documents/Work/Codebase/osr/typeahead-react-spring-boot/typeahead-rest-api/src/main/java/com/auto/complete/typeahead/domain/TrieNode.java
+/Users/crao/Documents/Work/Codebase/osr/typeahead-react-spring-boot/typeahead-rest-api/src/main/java/com/auto/complete/typeahead/domain/Trie.java
+/Users/crao/Documents/Work/Codebase/osr/typeahead-react-spring-boot/typeahead-rest-api/src/main/java/com/auto/complete/typeahead/domain/TrieBuilder.java
+/Users/crao/Documents/Work/Codebase/osr/typeahead-react-spring-boot/typeahead-rest-api/src/main/java/com/auto/complete/typeahead/exception/TypeaheadExceptionHandler.java
+/Users/crao/Documents/Work/Codebase/osr/typeahead-react-spring-boot/typeahead-rest-api/src/main/java/com/auto/complete/typeahead/TypeaheadApplication.java
+/Users/crao/Documents/Work/Codebase/osr/typeahead-react-spring-boot/typeahead-rest-api/src/main/java/com/auto/complete/typeahead/controller/TypeaheadController.java
+/Users/crao/Documents/Work/Codebase/osr/typeahead-react-spring-boot/typeahead-rest-api/src/main/java/com/auto/complete/typeahead/repository/TypeaheadRepository.java
+/Users/crao/Documents/Work/Codebase/osr/typeahead-react-spring-boot/typeahead-rest-api/src/main/java/com/auto/complete/typeahead/util/HistoricalDataLoader.java
+/Users/crao/Documents/Work/Codebase/osr/typeahead-react-spring-boot/typeahead-rest-api/src/main/java/com/auto/complete/typeahead/domain/Suggestion.java
+/Users/crao/Documents/Work/Codebase/osr/typeahead-react-spring-boot/typeahead-rest-api/src/main/java/com/auto/complete/typeahead/service/TypeaheadService.java

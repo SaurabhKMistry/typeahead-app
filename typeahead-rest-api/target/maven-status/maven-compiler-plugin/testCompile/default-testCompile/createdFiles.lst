@@ -1,0 +1,5 @@
+com/auto/complete/typeahead/TypeaheadTestBase.class
+com/auto/complete/typeahead/domain/TrieTest.class
+com/auto/complete/typeahead/TypeaheadIntegrationTest.class
+com/auto/complete/typeahead/TypeaheadIntegrationTest$PositiveTests.class
+com/auto/complete/typeahead/TypeaheadIntegrationTest$NegativeTests.class
