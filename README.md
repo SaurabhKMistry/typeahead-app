@@ -108,7 +108,7 @@ In order to gracefully shutdown all running docker containers created by docker-
 ```docker-compose down```
 
 
-## Tech Stack and rational behind choosing it
+## Tech Stack Selection Process 
 
 ### React UI
 
@@ -154,11 +154,14 @@ We want to keep write flows async mainly because typeahead system can afford to 
 Write flow is used in below two cases,
 
 * When user enters a new search in the search field, it is a new phrase that we want to accept so that it could be later used for further typeahead suggestions and
-* Collector component talks to third party trends, news-feed and other similar services to read latest trends and feed it back to typeahead system so that they could be used for providing suggestions
+* Aggregator component talks to third party trends, news-feed and other similar services to read latest trends and feed it back to typeahead system so that they could be used for providing suggestions
 
 In both of these cases, when <code>/collect-phrases</code> end point is hit, it just puts the data (phrases) in the form of messages into a Kafka topic and a Kafka-ES connector which would write that data into an index in ES.  
 
 
+## Alternate Design Option
+
+There is another option that I was considering for the typeahead system design. In real time design of system like typeahead, I would consider doing a quick POC with both the options and then choose one over the another based on data points. Nevertheless, I spent some time looking at this other option and I have coded one component of it as well which you can see already in the Github. I didn't get a chance to fully complete end to end flow with it with one million records.  
 
 Here's a trie that stores *Pot*, *Past*, *Pass* and *Part*
 
