@@ -159,16 +159,26 @@ Write flow is used in below two cases,
 In both of these cases, when <code>/collect-phrases</code> end point is hit, it just puts the data (phrases) in the form of messages into a Kafka topic and a Kafka-ES connector which would write that data into an index in ES.  
 
 
-## Alternate Design Option
+## Alternate System Design Option
 
-There is another option that I was considering for the typeahead system design. In real time design of system like typeahead, I would consider doing a quick POC with both the options and then choose one over the another based on data points. Nevertheless, I spent some time looking at this other option and I have coded one component of it as well which you can see already in the Github. I didn't get a chance to fully complete end to end flow with it with one million records.  
+I was contemlating one more way to solve typeahead requirement efficiently. In cases like this when there are 2 promising approaches, I most often do a quick POC with both the approaches and then based on data points choose one over the other. I did not get enough time to finish the POC for this second approach. Nnevertheless I manage to one critical component code complete. It is already in Github to review.
 
-Here's a trie that stores *Pot*, *Past*, *Pass* and *Part*
+In this second approach,  
+
+* *Trie* data structure is used as an in-memory data structuree for all possible auto completions stored in database
+* *MongoDB* is used as a primary persistent storage
+* *Redis* is used for caching Tries data structure on distributed servers 
+
+there is a dedicated section below regarding why I chose above 3 tech stack for this second option.
+
+In a *Trie* data structure, each node holds a character data and if you traverse all the leaf nodes from the root, you will get the list of all auto-complete words and phrases. Here's a trie that stores *Pot*, *Past*, *Pass* and *Part*. For a prefix *pa*, all possible auto-completions from *Trie* are *Pass*, *Past* and *Part* 
 
 <img src="https://github.com/SaurabhKMistry/typeahead-app/blob/master/images/Trie.svg">
 
 With *Trie* whenever there is a request for auto-complete based on a given prefix, we could traverse the tree character by character until we reach the last character of the prefix and then from there reach down to all the leaf nodes to arrive at possible suggestions. We could sort these suggestions based on their scores before sending it back to the UI. Please note that every leaf node in the Trie (leaf node represent a suggestion) contains a numeric score.
 
-This option is very powerful and efficient in a single server environment. When Trie needs to be managed across multiple servers in a distributed manner then things get complex. To handle distrubuted setup, trie could be stored in a LinkedList powered HashMap. Something similar to LinkedHashMap in Java. In this linked hash map, prefix is a mapped as a key and value is the linked list of string of all possible completion for the given prefix key.
+This works very well in single server environment. When *Trie* needs to be managed across multiple servers in a distributed manner then things get complex. To handle distrubuted setup, trie could be stored in a LinkedList powered HashMap. Something similar to *LinkedHashMap* in Java. In this linked hash map, prefix is mapped as a key and value is the linked list of strings of all possible completion for the given prefix key. Taking example of *pa* as a prefix, the hashmap would store *pa* as key and value as linked list of size 3 with each node holding a possible auto-completion (pass, past, and part). 
 
-This obviously requires more space than usual Trie in memory but it is very fast and could be mapped to Redis key value pair and hence could be made distributed. 
+For a distributed environment, we need to store similar prefix hash map on different servers. Hence chosing Redis as it is inherently key-value store, distributed in nature, highly scalable and most importantly blazingly fast.
+
+
