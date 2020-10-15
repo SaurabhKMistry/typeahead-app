@@ -197,6 +197,8 @@ When there is a request for auto-suggestions based on a prefix, we first check R
 
 When incrementing the score of the completion, first score would be incremented in redis and then written asynchronously in MongoDB. Some retry mechanisms would be put in place for cases when write to MongoDB fails.
 
+With a POC on this approach and spending couple of more days would make this design quite solid taking into acccount all possible edge cases and failure scenarios. I would be finishing my POC on this approach shortly.
+
 I have already coded *Trie* data structure logic. The relevant classes related to *Trie* are *Trie.java*, *TrieBuilder.java*, *TrieNode.java*, *Suggestion.java*.
 
 That's all for now... Thank you for reading...!!!
