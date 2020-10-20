@@ -52,6 +52,7 @@ public class TypeaheadApplication implements CommandLineRunner {
             dataLoader.loadDataFromFile();
         } catch(Exception e){
             log.error("Could not load data. Error while loading is " + e);
+            e.printStackTrace();
         }
     }
 }
