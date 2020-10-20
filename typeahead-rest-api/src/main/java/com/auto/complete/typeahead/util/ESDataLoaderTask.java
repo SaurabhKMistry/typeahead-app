@@ -2,21 +2,20 @@ package com.auto.complete.typeahead.util;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.springframework.core.env.Environment;
+import org.springframework.core.io.ClassPathResource;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.util.List;
 import java.util.stream.Stream;
 
 import static com.auto.complete.typeahead.TypeaheadPropertyKeys.*;
 import static java.lang.Thread.sleep;
-import static java.net.HttpURLConnection.HTTP_OK;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.ListUtils.partition;
 import static org.apache.http.HttpHeaders.ACCEPT;
@@ -46,10 +45,10 @@ public class ESDataLoaderTask implements Runnable {
 	@SneakyThrows
 	@Override
 	public void run() {
-		String thread = Thread.currentThread().getName();
 		Stream<String> lines = null;
 		try {
-			lines = Files.lines(Path.of(dataFileName));
+			ClassPathResource resource = new ClassPathResource(dataFileName);
+			lines = new BufferedReader(new InputStreamReader(resource.getInputStream())).lines();
 			List<String> createDocPayloads = lines.map(line -> "{\"index\":{}} \n{\"name\":\"" + line + "\"} \n")
 												  .collect(toList());
 			List<List<String>> listOfList = partition(createDocPayloads, BULK_CREATE_REQ_BATCH_SIZE);
@@ -59,16 +58,15 @@ public class ESDataLoaderTask implements Runnable {
 
 			for (List<String> list : listOfList) {
 				httpPost.setEntity(new StringEntity(String.join("", list)));
-				try(CloseableHttpClient httpClient = HttpClients.createDefault()){
-					CloseableHttpResponse httpResponse = httpClient.execute(httpPost);
-					if (httpResponse.getStatusLine().getStatusCode() != HTTP_OK) {
-						log.error("Error bulk uploading docs. Error is -> " + httpResponse.getEntity().getContent());
-					}
+				try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+					httpClient.execute(httpPost);
 					sleep(BULK_REQ_INTERVAL);
 				}
 			}
+		} catch (InterruptedException e) {
+			// DO NOTHING
 		} catch (Exception e) {
-			log.error("Error bulk uploading documents ]. Error --> " + e.getMessage(), e);
+			log.error("Error bulk uploading documents. Error --> " + e.getMessage(), e);
 			throw e;
 		} finally {
 			if (lines != null) {

@@ -1,6 +1,6 @@
 package com.auto.complete.typeahead;
 
-import com.auto.complete.typeahead.util.ElasticSearchDataLoader;
+import com.auto.complete.typeahead.util.ESDataLoader;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -20,7 +20,7 @@ public class TypeaheadApplication implements CommandLineRunner {
     private final ApplicationContext appContext;
 
     @Autowired
-    private ElasticSearchDataLoader dataLoader;
+    private ESDataLoader dataLoader;
 
     @Autowired
     public TypeaheadApplication(ApplicationContext appContext) {

@@ -8,16 +8,16 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URI;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Stream;
@@ -25,6 +25,7 @@ import java.util.stream.Stream;
 import static com.auto.complete.typeahead.TypeaheadPropertyKeys.*;
 import static java.lang.Long.parseLong;
 import static java.lang.String.valueOf;
+import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.apache.http.HttpHeaders.ACCEPT;
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
@@ -42,12 +43,12 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
  * As there are 1M records to index, the application indexes 10000 documents at a time in 100 batches.
  */
 @Component
-public class ElasticSearchDataLoader {
+public class ESDataLoader {
 	private static final int NO_OF_DATA_FILES = 10;
 	private static final int REQ_INTERVAL = 2_000;
 	private static final int NO_OF_ES_CONNECT_RETRY = 10;
 	private static final int DEFAULT_ES_WARM_UP_TIME = 10_000;
-	private static final String CREATE_INDEX_JSON_PAYLOAD_FILE = "src/main/resources/create_index_payload.json";
+	private static final String CREATE_INDEX_JSON_PAYLOAD_FILE = "create_index_payload.json";
 
 	private String esIndexName;
 	private String esIndexEndPoint;
@@ -57,7 +58,7 @@ public class ElasticSearchDataLoader {
 	private String esWarmupInterval;
 
 	@Autowired
-	public ElasticSearchDataLoader(Environment environment) {
+	public ESDataLoader(Environment environment) {
 		this.env = environment;
 
 		String host = env.getProperty(ES_HOST, DEFAULT_HOST);
@@ -78,7 +79,7 @@ public class ElasticSearchDataLoader {
 		log.info("Starting data load in elastic search...");
 		ExecutorService pool = Executors.newFixedThreadPool(NO_OF_DATA_FILES);
 		for (int i = 1; i <= NO_OF_DATA_FILES; i++) {
-			String csvFileName = "src/main/resources/100K_names_" + i + ".csv";
+			String csvFileName = "100K_names_" + i + ".csv";
 			pool.submit(new ESDataLoaderTask(csvFileName, env));
 		}
 		awaitTerminationAfterShutdown(pool);
@@ -106,7 +107,7 @@ public class ElasticSearchDataLoader {
 	public void awaitTerminationAfterShutdown(ExecutorService threadPool) {
 		threadPool.shutdown();
 		try {
-			if (!threadPool.awaitTermination(60, SECONDS)) {
+			if (!threadPool.awaitTermination(2, MINUTES)) {
 				threadPool.shutdownNow();
 			}
 		} catch (InterruptedException ex) {
@@ -134,28 +135,10 @@ public class ElasticSearchDataLoader {
 
 	private String getCreateIndexJsonPayload() throws IOException {
 		StringBuilder sb = new StringBuilder(500);
-		try (Stream<String> lineStream = Files.lines(Path.of(CREATE_INDEX_JSON_PAYLOAD_FILE))) {
+		ClassPathResource resource = new ClassPathResource(CREATE_INDEX_JSON_PAYLOAD_FILE);
+		try (Stream<String> lineStream = new BufferedReader(new InputStreamReader(resource.getInputStream())).lines()) {
 			lineStream.forEach(sb::append);
 		}
 		return sb.toString();
-	}
-
-	/**
-	 * Construct the BULK POST payload for Elastic Search
-	 */
-	private List<String> readFile() throws IOException {
-		List<String> documentList = new ArrayList<>();
-		for (int i = 1; i <= NO_OF_DATA_FILES; i++) {
-			String csvFileName = "/100K_names_" + i + ".csv";
-			InputStream is = this.getClass().getResourceAsStream(csvFileName);
-			try (BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
-				String line;
-				while ((line = br.readLine()) != null) {
-					String document = "{\"index\":{}} \n{\"name\":\"" + line + "\"} \n";
-					documentList.add(document);
-				}
-			}
-		}
-		return documentList;
 	}
 }
