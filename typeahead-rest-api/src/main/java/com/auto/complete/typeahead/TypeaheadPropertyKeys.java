@@ -27,6 +27,7 @@ public final class TypeaheadPropertyKeys {
 	public static final String DEFAULT_ES_INDEX = "typeahead";
 	public static final String DEFAULT_ES_FIELD = "name.completion";
 
+	public static final String ES_WARM_UP_INTERVAL = "elastic.search.warm.up.interval";
 	private TypeaheadPropertyKeys() {
 	}
 }

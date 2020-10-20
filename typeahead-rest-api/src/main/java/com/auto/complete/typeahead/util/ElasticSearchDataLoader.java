@@ -1,5 +1,6 @@
 package com.auto.complete.typeahead.util;
 
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPut;
@@ -9,23 +10,26 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
-import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Stream;
 
 import static com.auto.complete.typeahead.TypeaheadPropertyKeys.*;
-import static java.net.HttpURLConnection.HTTP_OK;
-import static org.apache.commons.collections4.ListUtils.partition;
+import static java.lang.Long.parseLong;
+import static java.lang.String.valueOf;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.apache.http.HttpHeaders.ACCEPT;
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
 import static org.apache.http.HttpStatus.SC_OK;
 import static org.apache.http.impl.client.HttpClients.createDefault;
-import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @Slf4j
@@ -40,22 +44,21 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @Component
 public class ElasticSearchDataLoader {
 	private static final int NO_OF_DATA_FILES = 10;
-	private static final int BETWEEN_REQ_SLEEP_INTERVAL = 2_000;
+	private static final int REQ_INTERVAL = 2_000;
 	private static final int NO_OF_ES_CONNECT_RETRY = 10;
-	private static final int ES_WARM_UP_TIME = 10_000;
-	private static final int DOCUMENT_BULK_BATCH_SIZE = 10_000;
+	private static final int DEFAULT_ES_WARM_UP_TIME = 10_000;
 	private static final String CREATE_INDEX_JSON_PAYLOAD_FILE = "src/main/resources/create_index_payload.json";
-
-	@Autowired
-	private Environment env;
 
 	private String esIndexName;
 	private String esIndexEndPoint;
-	private String elasticsearchBulkEndpoint;
+
+	private Environment env;
+
+	private String esWarmupInterval;
 
 	@Autowired
-	public ElasticSearchDataLoader(Environment env) {
-		this.env = env;
+	public ElasticSearchDataLoader(Environment environment) {
+		this.env = environment;
 
 		String host = env.getProperty(ES_HOST, DEFAULT_HOST);
 		String port = env.getProperty(ES_PORT, DEFAULT_PORT);
@@ -63,69 +66,78 @@ public class ElasticSearchDataLoader {
 
 		esIndexName = env.getProperty(ES_INDEX, DEFAULT_ES_INDEX);
 		esIndexEndPoint = scheme + "://" + host + ":" + port + "/" + esIndexName;
-		elasticsearchBulkEndpoint = esIndexEndPoint + "/_doc/_bulk";
+		esWarmupInterval = env.getProperty(ES_WARM_UP_INTERVAL, valueOf(DEFAULT_ES_WARM_UP_TIME));
 	}
 
-	public void loadDataFromFile() throws Exception {
-		Thread.sleep(ES_WARM_UP_TIME);
-
+	@SneakyThrows
+	public void loadDataInElasticSearch() {
+		log.info("Giving warm up time of " + esWarmupInterval + " to elastic search");
+		Thread.sleep(parseLong(esWarmupInterval));
 		createIndexInElasticSearch();
 
-		HttpURLConnection conn = null;
-		List<String> documentList = readFile();
-		List<List<String>> batchOfDocs = partition(documentList, DOCUMENT_BULK_BATCH_SIZE);
-
-		try {
-			URL url = new URL(elasticsearchBulkEndpoint);
-			conn = (HttpURLConnection) url.openConnection();
-			conn.setDoOutput(true);
-			conn.setRequestMethod(POST.name());
-			conn.setRequestProperty(CONTENT_TYPE, APPLICATION_JSON_VALUE);
-			OutputStream os = conn.getOutputStream();
-
-			for (List<String> documents : batchOfDocs) {
-				String bulkInsertDocPayload = String.join("", documents);
-				os.write(bulkInsertDocPayload.getBytes());
-				os.flush();
-				if (conn.getResponseCode() != HTTP_OK) {
-					throw new RuntimeException("Failed : HTTP error code : " + conn.getResponseCode());
-				}
-			}
-		} catch (Exception e) {
-			log.error("Dataloader has failed to load elastic search data. Exception is - " + e.getMessage());
-			// Do not stop. Log the error, Ignore the error for now and Continue
-		} finally {
-			if (conn != null) {
-				conn.disconnect();
-			}
+		log.info("Starting data load in elastic search...");
+		ExecutorService pool = Executors.newFixedThreadPool(NO_OF_DATA_FILES);
+		for (int i = 1; i <= NO_OF_DATA_FILES; i++) {
+			String csvFileName = "src/main/resources/100K_names_" + i + ".csv";
+			pool.submit(new ESDataLoaderTask(csvFileName, env));
 		}
-		log.info("Completed indexing data for the index [" + esIndexName + "]");
+		awaitTerminationAfterShutdown(pool);
+		log.info("Data load complete. Thread pool is terminated");
 	}
 
 	private void createIndexInElasticSearch() throws Exception {
+		HttpPut httpPut = createIndexPutRequest();
+		try (CloseableHttpClient httpClient = createDefault()) {
+			for (int i = 0; i < NO_OF_ES_CONNECT_RETRY; i++) {
+				try {
+					executeCreateIndexRequest(httpPut, httpClient);
+					break;
+				} catch (Exception e) {
+					log.info("Tried " + i + " times. Sleeping for " + REQ_INTERVAL + " msecs before trying again");
+					Thread.sleep(REQ_INTERVAL);
+					if (i == NO_OF_ES_CONNECT_RETRY - 1) {
+						throw e;
+					}
+				}
+			}
+		}
+	}
+
+	public void awaitTerminationAfterShutdown(ExecutorService threadPool) {
+		threadPool.shutdown();
+		try {
+			if (!threadPool.awaitTermination(60, SECONDS)) {
+				threadPool.shutdownNow();
+			}
+		} catch (InterruptedException ex) {
+			threadPool.shutdownNow();
+			Thread.currentThread().interrupt();
+		}
+	}
+
+	private HttpPut createIndexPutRequest() throws IOException {
 		HttpPut httpPut = new HttpPut(esIndexEndPoint);
 		httpPut.setHeader(ACCEPT, APPLICATION_JSON_VALUE);
 		httpPut.setHeader(CONTENT_TYPE, APPLICATION_JSON_VALUE);
 		httpPut.setEntity(new StringEntity(getCreateIndexJsonPayload()));
+		return httpPut;
+	}
 
-		for (int i = 0; i < NO_OF_ES_CONNECT_RETRY; i++) {
-			try {
-				CloseableHttpResponse httpResponse;
-				try (CloseableHttpClient httpclient = createDefault()) {
-					httpResponse = httpclient.execute(httpPut);
-				}
-				if (httpResponse.getStatusLine().getStatusCode() == SC_OK) {
-					log.info("Created index in elastic search");
-					break;
-				}
-			} catch (Exception e) {
-				log.info("Tried " + i + " times. Sleeping for 2 secs before trying again");
-				Thread.sleep(BETWEEN_REQ_SLEEP_INTERVAL);
-				if (i == NO_OF_ES_CONNECT_RETRY - 1) {
-					throw e;
-				}
-			}
+	private void executeCreateIndexRequest(HttpPut httpPut, CloseableHttpClient httpClient)
+	throws IOException {
+		log.info("Creating index [" + esIndexName + "]");
+		CloseableHttpResponse httpResponse = httpClient.execute(httpPut);
+		if (httpResponse.getStatusLine().getStatusCode() == SC_OK) {
+			log.info("Index [" + esIndexName + "] created successfully");
 		}
+	}
+
+	private String getCreateIndexJsonPayload() throws IOException {
+		StringBuilder sb = new StringBuilder(500);
+		try (Stream<String> lineStream = Files.lines(Path.of(CREATE_INDEX_JSON_PAYLOAD_FILE))) {
+			lineStream.forEach(sb::append);
+		}
+		return sb.toString();
 	}
 
 	/**
@@ -145,13 +157,5 @@ public class ElasticSearchDataLoader {
 			}
 		}
 		return documentList;
-	}
-
-	private String getCreateIndexJsonPayload() throws IOException {
-		StringBuilder sb = new StringBuilder(500);
-		try (Stream<String> lineStream = Files.lines(Path.of(CREATE_INDEX_JSON_PAYLOAD_FILE))) {
-			lineStream.forEach(sb::append);
-		}
-		return sb.toString();
 	}
 }

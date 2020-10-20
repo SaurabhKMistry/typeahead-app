@@ -49,10 +49,9 @@ public class TypeaheadApplication implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         try {
-            dataLoader.loadDataFromFile();
+            dataLoader.loadDataInElasticSearch();
         } catch(Exception e){
-            log.error("Could not load data. Error while loading is " + e);
-            e.printStackTrace();
+            log.error("Could not load data. Error while loading --> " + e, e);
         }
     }
 }
