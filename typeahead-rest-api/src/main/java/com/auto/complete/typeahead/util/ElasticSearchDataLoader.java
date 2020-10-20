@@ -42,7 +42,7 @@ public class ElasticSearchDataLoader {
 	private static final int NO_OF_DATA_FILES = 10;
 	private static final int BETWEEN_REQ_SLEEP_INTERVAL = 2_000;
 	private static final int NO_OF_ES_CONNECT_RETRY = 10;
-	private static final int ES_WARM_UP_TIME = 5_000;
+	private static final int ES_WARM_UP_TIME = 10_000;
 	private static final int DOCUMENT_BULK_BATCH_SIZE = 10_000;
 	private static final String CREATE_INDEX_JSON_PAYLOAD_FILE = "src/main/resources/create_index_payload.json";
 
