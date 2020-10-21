@@ -2,9 +2,10 @@
 
 version: '3.7'
 
-# Define services
+# Services that make up the entire application stack of Typeahead application
 services:
   lb:
+    container_name: lb
     build:
       context: nginx
       dockerfile: Dockerfile
@@ -14,12 +15,12 @@ services:
     tty: true
     depends_on:
       - service1
-      - service2
     networks:
-      - typeahead-network
+      - network1
 
-    # Frontend Service 
-  react:
+  # Typeahead React based UI service 
+  ui:
+    container_name: ui
     build:
       context: typeahead-react # Use an image built from the specified dockerfile in the `polling-app-client` directory.
       dockerfile: Dockerfile
@@ -30,11 +31,11 @@ services:
     depends_on:
       - lb
     networks:
-      - typeahead-network
+      - network1
   
-  # App backend service
+  # Spring boot based typeahead Rest Api
   service1:
-    # Configuration for building the docker image for the backend service
+    container_name: service1
     build:
       context: typeahead-rest-api # Use an image built from the specified dockerfile in the `polling-app-server` directory.
       dockerfile: Dockerfile
@@ -47,24 +48,9 @@ services:
     depends_on:
       - es 
     networks: # Networks to join (Services on the same network can communicate with each other using their name)
-      - typeahead-network
+      - network1
 
-  service2:
-    # Configuration for building the docker image for the backend service
-    build:
-      context: typeahead-rest-api # Use an image built from the specified dockerfile in the `polling-app-server` directory.
-      dockerfile: Dockerfile
-    ports:
-      - "8282:8080" # Forward the exposed port 8080 on the container to port 8080 on the host machine
-    restart: always  
-    tty: true 
-    links:
-      - es
-    depends_on:
-      - es
-    networks: # Networks to join (Services on the same network can communicate with each other using their name)
-      - typeahead-network
-
+  # Elastic search service
   es:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.9.2
     container_name: es
@@ -86,7 +72,7 @@ services:
       - 9200:9200
       - 9300:9300
     networks:
-      - typeahead-network
+      - network1
 
 volumes:
   es-data:
@@ -94,4 +80,4 @@ volumes:
 
 # Networks to be created to facilitate communication between containers
 networks:
-  typeahead-network:
+  network1:
