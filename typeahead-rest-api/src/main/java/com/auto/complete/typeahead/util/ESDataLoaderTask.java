@@ -10,6 +10,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.List;
 import java.util.stream.Stream;
@@ -45,19 +46,14 @@ public class ESDataLoaderTask implements Runnable {
 	@SneakyThrows
 	@Override
 	public void run() {
-		Stream<String> lines = null;
+		Stream<String> lineStream = null;
 		try {
-			ClassPathResource resource = new ClassPathResource(dataFileName);
-			lines = new BufferedReader(new InputStreamReader(resource.getInputStream())).lines();
-			List<String> createDocPayloads = lines.map(line -> "{\"index\":{}} \n{\"name\":\"" + line + "\"} \n")
-												  .collect(toList());
-			List<List<String>> listOfList = partition(createDocPayloads, BULK_CREATE_REQ_BATCH_SIZE);
-			HttpPost httpPost = new HttpPost(esBulkEndpoint);
-			httpPost.setHeader(ACCEPT, APPLICATION_JSON_VALUE);
-			httpPost.setHeader(CONTENT_TYPE, APPLICATION_JSON_VALUE);
+			lineStream = getCreateDocPayloadLineStream();
+			HttpPost httpPost = createHttpPost();
 
-			for (List<String> list : listOfList) {
-				httpPost.setEntity(new StringEntity(String.join("", list)));
+			List<List<String>> createDocPayloadBatches = createBatches(getCreateDocPayloadList(lineStream));
+			for (List<String> createDocPayloadBatch : createDocPayloadBatches) {
+				httpPost.setEntity(new StringEntity(String.join("", createDocPayloadBatch)));
 				try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
 					httpClient.execute(httpPost);
 					sleep(BULK_REQ_INTERVAL);
@@ -69,9 +65,34 @@ public class ESDataLoaderTask implements Runnable {
 			log.error("Error bulk uploading documents. Error --> " + e.getMessage(), e);
 			throw e;
 		} finally {
-			if (lines != null) {
-				lines.close();
-			}
+			closeStream(lineStream);
+		}
+	}
+
+	private Stream<String> getCreateDocPayloadLineStream() throws IOException {
+		ClassPathResource resource = new ClassPathResource(dataFileName);
+		return new BufferedReader(new InputStreamReader(resource.getInputStream())).lines();
+	}
+
+	private List<String> getCreateDocPayloadList(Stream<String> lineStream) {
+		return lineStream.map(line -> "{\"index\":{}} \n{\"name\":\"" + line + "\"} \n")
+						 .collect(toList());
+	}
+
+	private List<List<String>> createBatches(List<String> createDocPayloads) {
+		return partition(createDocPayloads, BULK_CREATE_REQ_BATCH_SIZE);
+	}
+
+	private HttpPost createHttpPost() {
+		HttpPost httpPost = new HttpPost(esBulkEndpoint);
+		httpPost.setHeader(ACCEPT, APPLICATION_JSON_VALUE);
+		httpPost.setHeader(CONTENT_TYPE, APPLICATION_JSON_VALUE);
+		return httpPost;
+	}
+
+	private void closeStream(Stream<String> stream) {
+		if (stream != null) {
+			stream.close();
 		}
 	}
 }

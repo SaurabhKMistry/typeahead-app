@@ -14,10 +14,6 @@ import org.springframework.stereotype.Component;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.URI;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Stream;
@@ -26,7 +22,6 @@ import static com.auto.complete.typeahead.TypeaheadPropertyKeys.*;
 import static java.lang.Long.parseLong;
 import static java.lang.String.valueOf;
 import static java.util.concurrent.TimeUnit.MINUTES;
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.apache.http.HttpHeaders.ACCEPT;
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
 import static org.apache.http.HttpStatus.SC_OK;
@@ -44,10 +39,11 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
  */
 @Component
 public class ESDataLoader {
-	private static final int NO_OF_DATA_FILES = 10;
-	private static final int REQ_INTERVAL = 2_000;
-	private static final int NO_OF_ES_CONNECT_RETRY = 10;
+	private static final int DATA_FILES_COUNT = 10;
+	private static final int RETRY_REQ_WAIT_INTERVAL = 2_000;
+	private static final int ES_RETRY_COUNT = 10;
 	private static final int DEFAULT_ES_WARM_UP_TIME = 10_000;
+
 	private static final String CREATE_INDEX_JSON_PAYLOAD_FILE = "create_index_payload.json";
 
 	private String esIndexName;
@@ -77,26 +73,26 @@ public class ESDataLoader {
 		createIndexInElasticSearch();
 
 		log.info("Starting data load in elastic search...");
-		ExecutorService pool = Executors.newFixedThreadPool(NO_OF_DATA_FILES);
-		for (int i = 1; i <= NO_OF_DATA_FILES; i++) {
+		ExecutorService pool = Executors.newFixedThreadPool(DATA_FILES_COUNT);
+		for (int i = 1; i <= DATA_FILES_COUNT; i++) {
 			String csvFileName = "100K_names_" + i + ".csv";
 			pool.submit(new ESDataLoaderTask(csvFileName, env));
 		}
-		awaitTerminationAfterShutdown(pool);
-		log.info("Data load complete. Thread pool is terminated");
+		letAllAboveThreadsToComplete(pool);
+		log.info("Data is loaded successfully...!!! You can use the system now");
 	}
 
 	private void createIndexInElasticSearch() throws Exception {
 		HttpPut httpPut = createIndexPutRequest();
 		try (CloseableHttpClient httpClient = createDefault()) {
-			for (int i = 0; i < NO_OF_ES_CONNECT_RETRY; i++) {
+			for (int i = 0; i < ES_RETRY_COUNT; i++) {
 				try {
 					executeCreateIndexRequest(httpPut, httpClient);
 					break;
 				} catch (Exception e) {
-					log.info("Tried " + i + " times. Sleeping for " + REQ_INTERVAL + " msecs before trying again");
-					Thread.sleep(REQ_INTERVAL);
-					if (i == NO_OF_ES_CONNECT_RETRY - 1) {
+					log.info("Tried " + i + " times. Will try again after " + RETRY_REQ_WAIT_INTERVAL + " msecs");
+					Thread.sleep(RETRY_REQ_WAIT_INTERVAL);
+					if (i == ES_RETRY_COUNT - 1) {
 						throw e;
 					}
 				}
@@ -104,7 +100,7 @@ public class ESDataLoader {
 		}
 	}
 
-	public void awaitTerminationAfterShutdown(ExecutorService threadPool) {
+	public void letAllAboveThreadsToComplete(ExecutorService threadPool) {
 		threadPool.shutdown();
 		try {
 			if (!threadPool.awaitTermination(2, MINUTES)) {
