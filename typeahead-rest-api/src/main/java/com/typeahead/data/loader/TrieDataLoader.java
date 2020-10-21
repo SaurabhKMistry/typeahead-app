@@ -18,7 +18,7 @@ import static com.typeahead.common.TypeaheadPropertyKeys.TYPEAHEAD_POWERED_BY_TR
 @Slf4j
 @Component
 @ConditionalOnProperty(name = TYPEAHEAD_POWERED_BY, havingValue = TYPEAHEAD_POWERED_BY_TRIE, matchIfMissing = false)
-public class TrieDataLoader extends ITypeaheadDataLoader {
+public class TrieDataLoader implements ITypeaheadDataLoader {
 	private Trie trie;
 	private static final int DATA_FILES_COUNT = 10;
 

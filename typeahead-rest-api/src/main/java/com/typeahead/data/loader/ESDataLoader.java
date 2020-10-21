@@ -15,7 +15,6 @@ import static java.lang.Long.parseLong;
 import static java.lang.String.valueOf;
 import static java.lang.Thread.sleep;
 
-@Slf4j
 /**
  * This class is responsible to load historical typeahead data from flat-file to persistence layer.
  * names_1m_data.csv is sample file that contains 1Million name suggestions.
@@ -24,9 +23,10 @@ import static java.lang.Thread.sleep;
  * This class is called o Spring Boot application startup inorder to ensure that there is enough data indexed in Elastic Search.
  * As there are 1M records to index, the application indexes 10000 documents at a time in 100 batches.
  */
+@Slf4j
 @Component
 @ConditionalOnProperty(name = TYPEAHEAD_POWERED_BY, matchIfMissing = true, havingValue = TYPEAHEAD_POWERED_BY_ES)
-public class ESDataLoader extends ITypeaheadDataLoader {
+public class ESDataLoader implements ITypeaheadDataLoader {
 	private static final int DATA_FILES_COUNT = 10;
 	private static final int DEFAULT_ES_WARM_UP_TIME = 10_000;
 	private String esWarmupInterval;

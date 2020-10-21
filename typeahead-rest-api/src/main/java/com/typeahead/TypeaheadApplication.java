@@ -16,12 +16,12 @@ import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 @SpringBootApplication
 @PropertySource("classpath:typeahead.properties")
 public class TypeaheadApplication implements CommandLineRunner {
-	private ITypeaheadDataLoader typeaheadDataLoader;
+	private ITypeaheadDataLoader dataLoader;
 
 	@Autowired
 	public TypeaheadApplication(@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
-										ITypeaheadDataLoader typeaheadDataLoader) {
-		this.typeaheadDataLoader = typeaheadDataLoader;
+										ITypeaheadDataLoader dataLoader) {
+		this.dataLoader = dataLoader;
 	}
 
 	public static void main(String[] args) {
@@ -37,16 +37,16 @@ public class TypeaheadApplication implements CommandLineRunner {
 
 	@Bean
 	public MessageSource messageSource() {
-		ReloadableResourceBundleMessageSource messageSource = new ReloadableResourceBundleMessageSource();
-		messageSource.setBasename("classpath:typeahead");
-		messageSource.setDefaultEncoding("UTF-8");
-		return messageSource;
+		ReloadableResourceBundleMessageSource msgSrc = new ReloadableResourceBundleMessageSource();
+		msgSrc.setBasename("classpath:typeahead");
+		msgSrc.setDefaultEncoding("UTF-8");
+		return msgSrc;
 	}
 
 	@Override
 	public void run(String... args) throws Exception {
 		try {
-			typeaheadDataLoader.loadData();
+			dataLoader.loadData();
 		} catch (Exception e) {
 			log.error("Error while loading data. Error --> " + e, e);
 		}

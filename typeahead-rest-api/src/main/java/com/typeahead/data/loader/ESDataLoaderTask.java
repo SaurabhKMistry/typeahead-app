@@ -24,7 +24,7 @@ import static org.apache.http.HttpHeaders.CONTENT_TYPE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @Slf4j
-public class ESDataLoaderTask implements Runnable {
+class ESDataLoaderTask implements Runnable {
 	private static final int BULK_CREATE_REQ_BATCH_SIZE = 10_000;
 	private static final int BULK_REQ_INTERVAL = 1_000;
 

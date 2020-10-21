@@ -24,7 +24,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @Slf4j
 @Component
-public class ESIndexCreator {
+class ESIndexCreator {
 	private static final int ES_RETRY_COUNT = 10;
 	private static final int RETRY_REQ_WAIT_INTERVAL = 2_000;
 	private static final String CREATE_INDEX_JSON_PAYLOAD_FILE = "create_index_payload.json";
