@@ -63,7 +63,6 @@ public class ESRepository implements ITypeaheadRepository {
 					   .map(CompletionSuggestion::getOptions)
 					   .flatMap(Collection::stream)
 					   .map(option -> option.getText().string())
-					   .distinct()
 					   .collect(toList());
 	}
 }
