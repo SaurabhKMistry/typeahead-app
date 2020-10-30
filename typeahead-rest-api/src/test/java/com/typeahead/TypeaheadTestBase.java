@@ -6,6 +6,7 @@ import com.typeahead.service.ITypeaheadService;
 import org.hamcrest.collection.IsIterableContainingInOrder;
 import org.junit.jupiter.api.Test;
 
+import java.util.Collection;
 import java.util.List;
 
 import static java.util.List.of;
@@ -32,7 +33,7 @@ public class TypeaheadTestBase {
 
 		int suggestionCount = 10;
 		when(mockService.autocomplete(TYPEAHEAD_PREFIX_Q, suggestionCount)).thenReturn(qbList);
-		List<String> actual = controller.getAutoSuggestions(TYPEAHEAD_PREFIX_Q, suggestionCount);
+		Collection<String> actual = controller.getAutoSuggestions(TYPEAHEAD_PREFIX_Q, suggestionCount);
 
 		verify(mockService).autocomplete(TYPEAHEAD_PREFIX_Q, suggestionCount);
 		assertThat(actual.size(), is(2));
@@ -45,7 +46,7 @@ public class TypeaheadTestBase {
 
 		when(mockService.autocomplete(TYPEAHEAD_PREFIX_Q, suggestionCount))
 				.thenReturn(List.of(TYPEAHEAD_SUGGESTION_QBDT));
-		List<String> actual = controller.getAutoSuggestions(TYPEAHEAD_PREFIX_Q, suggestionCount);
+		Collection<String> actual = controller.getAutoSuggestions(TYPEAHEAD_PREFIX_Q, suggestionCount);
 
 		verify(mockService).autocomplete(TYPEAHEAD_PREFIX_Q, suggestionCount);
 		assertThat(actual.size(), is(suggestionCount));
@@ -58,7 +59,7 @@ public class TypeaheadTestBase {
 
 		when(mockService.autocomplete(TYPEAHEAD_PREFIX_Q, suggestionCount))
 				.thenReturn(List.of(TYPEAHEAD_SUGGESTION_QBDT));
-		List<String> actual = controller.getAutoSuggestions(TYPEAHEAD_PREFIX_Q, suggestionCount);
+		Collection<String> actual = controller.getAutoSuggestions(TYPEAHEAD_PREFIX_Q, suggestionCount);
 
 		verify(mockService).autocomplete(TYPEAHEAD_PREFIX_Q, suggestionCount);
 		assertThat(actual.size(), is(1));
@@ -70,11 +71,11 @@ public class TypeaheadTestBase {
 		int suggestionCount = 2;
 		when(mockService.autocomplete(TYPEAHEAD_PREFIX_Q, suggestionCount))
 				.thenReturn(List.of(TYPEAHEAD_SUGGESTION_QBDT, TYPEAHEAD_SUGGESTION_QBO));
-		List<String> actualSuggestions = controller.getAutoSuggestions(TYPEAHEAD_PREFIX_Q, suggestionCount);
+		Collection<String> actualSuggestions = controller.getAutoSuggestions(TYPEAHEAD_PREFIX_Q, suggestionCount);
 
 		verify(mockService).autocomplete(TYPEAHEAD_PREFIX_Q, suggestionCount);
 		assertThat(actualSuggestions.size(), is(2));
-		assertThat(actualSuggestions.get(0), is(TYPEAHEAD_SUGGESTION_QBDT));
-		assertThat(actualSuggestions.get(1), is(TYPEAHEAD_SUGGESTION_QBO));
+		assertThat(actualSuggestions.toArray()[0], is(TYPEAHEAD_SUGGESTION_QBDT));
+		assertThat(actualSuggestions.toArray()[1], is(TYPEAHEAD_SUGGESTION_QBO));
 	}
 }

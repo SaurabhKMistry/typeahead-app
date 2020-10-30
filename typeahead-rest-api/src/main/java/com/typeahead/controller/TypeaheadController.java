@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
-import java.util.List;
+import java.util.Collection;
 
 import static com.typeahead.common.TypeaheadPropertyKeys.*;
 import static java.util.Collections.emptyList;
@@ -31,11 +31,11 @@ public class TypeaheadController {
 	}
 
 	@GetMapping("/typeahead")
-	public List<String> getAutoSuggestions(@RequestParam
-										   @NotNull(message = DECORATED_PREFIX_QRY_PARAM_MISSING) String prefix,
-										   @RequestParam(defaultValue = DEF_SUGGESTION_FETCH_COUNT)
-										   @Min(value = 1, message = DECORATED_INVALID_SUGGESTION_COUNT) int suggestionCount) {
-		List<String> autocompleteList = typeaheadService.autocomplete(prefix, suggestionCount);
+	public Collection<String> getAutoSuggestions(@RequestParam
+												 @NotNull(message = DECORATED_PREFIX_QRY_PARAM_MISSING) String prefix,
+												 @RequestParam(defaultValue = DEF_SUGGESTION_FETCH_COUNT)
+												 @Min(value = 1, message = DECORATED_INVALID_SUGGESTION_COUNT) int suggestionCount) {
+		Collection<String> autocompleteList = typeaheadService.autocomplete(prefix, suggestionCount);
 		return autocompleteList == null ? emptyList() : autocompleteList;
 	}
 }

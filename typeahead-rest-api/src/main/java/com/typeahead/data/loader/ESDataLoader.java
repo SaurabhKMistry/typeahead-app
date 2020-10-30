@@ -25,7 +25,7 @@ import static java.lang.Thread.sleep;
  */
 @Slf4j
 @Component
-@ConditionalOnProperty(name = TYPEAHEAD_POWERED_BY, matchIfMissing = true, havingValue = TYPEAHEAD_POWERED_BY_ES)
+@ConditionalOnProperty(name = TYPEAHEAD_POWERED_BY, matchIfMissing = false, havingValue = TYPEAHEAD_POWERED_BY_ES)
 public class ESDataLoader implements ITypeaheadDataLoader {
 	private static final int DATA_FILES_COUNT = 10;
 	private static final int DEFAULT_ES_WARM_UP_TIME = 10_000;

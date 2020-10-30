@@ -36,9 +36,7 @@ public class TrieDataLoader implements ITypeaheadDataLoader {
 			try {
 				BufferedReader br = new BufferedReader(new InputStreamReader(resource.getInputStream()));
 				Stream<String> lineStream = br.lines();
-				lineStream.forEach(name -> {
-					trie.insert(name);
-				});
+				lineStream.forEach(name -> trie.insert(name));
 			} catch (IOException e) {
 				log.error("Error while inserting data into trie. Error --> " + e.getMessage(), e);
 				return;

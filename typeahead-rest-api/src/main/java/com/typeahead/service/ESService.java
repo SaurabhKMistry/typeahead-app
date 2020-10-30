@@ -11,7 +11,7 @@ import static com.typeahead.common.TypeaheadPropertyKeys.TYPEAHEAD_POWERED_BY;
 import static com.typeahead.common.TypeaheadPropertyKeys.TYPEAHEAD_POWERED_BY_ES;
 
 @Slf4j
-@ConditionalOnProperty(name = TYPEAHEAD_POWERED_BY, matchIfMissing = true, havingValue = TYPEAHEAD_POWERED_BY_ES)
+@ConditionalOnProperty(name = TYPEAHEAD_POWERED_BY, matchIfMissing = false, havingValue = TYPEAHEAD_POWERED_BY_ES)
 @Service
 public class ESService implements ITypeaheadService {
 	private ESRepository esRepo;

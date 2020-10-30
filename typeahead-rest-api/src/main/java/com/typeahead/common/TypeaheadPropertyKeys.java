@@ -28,9 +28,16 @@ public final class TypeaheadPropertyKeys {
 	public static final String DEFAULT_ES_FIELD = "name.completion";
 
 	public static final String ES_WARM_UP_INTERVAL = "elastic.search.warm.up.interval";
+
+	// Constants representing the configurable property value that decides which implementation of typeahead to use.
+	// Below are possible values.
 	public static final String TYPEAHEAD_POWERED_BY = "typeahead.powered.by";
-	public static final String TYPEAHEAD_POWERED_BY_ES = "elastic_search";
-	public static final String TYPEAHEAD_POWERED_BY_TRIE = "trie";
+
+	public static final String TYPEAHEAD_TOP_SUGGESTION_TO_SHOW_COUNT = "typeahead.top.suggestions.to.show.count";
+
+	public static final String TYPEAHEAD_POWERED_BY_ES = "Elastic-Search";
+	public static final String TYPEAHEAD_POWERED_BY_REDIS = "Redis";
+	public static final String TYPEAHEAD_POWERED_BY_TRIE = "Trie";
 
 	private TypeaheadPropertyKeys() {
 	}
