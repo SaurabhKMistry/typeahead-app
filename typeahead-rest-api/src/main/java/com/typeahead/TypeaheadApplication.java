@@ -1,7 +1,6 @@
 package com.typeahead;
 
 import com.typeahead.data.loader.ITypeaheadDataLoader;
-import com.typeahead.redis.Autocompletion;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -35,8 +34,8 @@ public class TypeaheadApplication implements CommandLineRunner {
 	}
 
 	@Bean
-	RedisTemplate<String, Autocompletion> redisTemplate() {
-		RedisTemplate<String, Autocompletion> redisTemplate = new RedisTemplate<>();
+	RedisTemplate<String, String> redisTemplate() {
+		RedisTemplate<String, String> redisTemplate = new RedisTemplate<>();
 		redisTemplate.setConnectionFactory(new JedisConnectionFactory());
 		redisTemplate.setKeySerializer(new StringRedisSerializer());
 		return redisTemplate;
