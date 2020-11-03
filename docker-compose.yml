@@ -4,6 +4,21 @@ version: '3.7'
 
 # Services that make up the entire application stack of Typeahead application
 services:
+  version: "3.2"
+services:
+  redis:
+    image: "redis:alpine"
+    container_name: redis
+    command: redis-server
+    ports:
+     - "6379:6379"
+    volumes:
+     - $PWD/redis-data:/var/lib/redis
+    environment:
+     - REDIS_REPLICATION_MODE=master
+    networks:
+      - network1
+
   lb:
     container_name: lb
     build:
@@ -46,7 +61,8 @@ services:
     links:
       - es
     depends_on:
-      - es 
+      - es
+      - redis 
     networks: # Networks to join (Services on the same network can communicate with each other using their name)
       - network1
 
