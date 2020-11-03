@@ -1,15 +1,15 @@
-package com.typeahead.service;
+package com.typeahead.trie;
 
-import com.typeahead.trie.Trie;
+import com.typeahead.ITypeaheadService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+import static com.typeahead.common.TypeaheadConstants.TYPEAHEAD_POWERED_BY_TRIE;
 import static com.typeahead.common.TypeaheadPropertyKeys.TYPEAHEAD_POWERED_BY;
-import static com.typeahead.common.TypeaheadPropertyKeys.TYPEAHEAD_POWERED_BY_TRIE;
 
-@ConditionalOnProperty(name = TYPEAHEAD_POWERED_BY, havingValue = TYPEAHEAD_POWERED_BY_TRIE, matchIfMissing = false)
+@ConditionalOnProperty(name = TYPEAHEAD_POWERED_BY, havingValue = TYPEAHEAD_POWERED_BY_TRIE)
 @Service
 public class TrieService implements ITypeaheadService {
 	private Trie trie;

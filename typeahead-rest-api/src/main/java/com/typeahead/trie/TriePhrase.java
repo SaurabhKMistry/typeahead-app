@@ -11,7 +11,7 @@ import javax.persistence.Id;
 @NoArgsConstructor
 @ToString
 @Getter
-public class TrieEntity {
+public class TriePhrase {
 	private static final int DEFAULT_SCORE = 0;
 	@GeneratedValue
 	@Id
@@ -20,7 +20,7 @@ public class TrieEntity {
 	@NonNull private String word;
 	@NonNull private int score;
 
-	public TrieEntity(String word) {
+	public TriePhrase(String word) {
 		this(word, DEFAULT_SCORE);
 	}
 }

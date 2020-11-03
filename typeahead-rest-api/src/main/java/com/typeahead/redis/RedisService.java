@@ -1,15 +1,14 @@
-package com.typeahead.service;
+package com.typeahead.redis;
 
-import com.typeahead.repository.RedisRepository;
+import com.typeahead.ITypeaheadService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
-import java.util.List;
 
+import static com.typeahead.common.TypeaheadConstants.TYPEAHEAD_POWERED_BY_REDIS;
 import static com.typeahead.common.TypeaheadPropertyKeys.TYPEAHEAD_POWERED_BY;
-import static com.typeahead.common.TypeaheadPropertyKeys.TYPEAHEAD_POWERED_BY_REDIS;
 
 @Slf4j
 @ConditionalOnProperty(name = TYPEAHEAD_POWERED_BY, matchIfMissing = true, havingValue = TYPEAHEAD_POWERED_BY_REDIS)

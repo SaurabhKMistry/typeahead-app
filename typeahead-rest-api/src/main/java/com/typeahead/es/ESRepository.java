@@ -1,5 +1,7 @@
-package com.typeahead.repository;
+package com.typeahead.es;
 
+import com.typeahead.es.common.ESConfig;
+import com.typeahead.ITypeaheadRepository;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpHost;
@@ -11,13 +13,15 @@ import org.elasticsearch.search.suggest.SuggestBuilder;
 import org.elasticsearch.search.suggest.SuggestBuilders;
 import org.elasticsearch.search.suggest.completion.CompletionSuggestion;
 import org.elasticsearch.search.suggest.completion.CompletionSuggestionBuilder;
-import org.springframework.core.env.Environment;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.List;
 
-import static com.typeahead.common.TypeaheadPropertyKeys.*;
+import static com.typeahead.common.TypeaheadConstants.TYPEAHEAD_POWERED_BY_ES;
+import static com.typeahead.common.TypeaheadPropertyKeys.TYPEAHEAD_POWERED_BY;
 import static java.lang.Integer.parseInt;
 import static java.util.stream.Collectors.toList;
 import static org.elasticsearch.client.RequestOptions.DEFAULT;
@@ -28,31 +32,26 @@ import static org.elasticsearch.client.RestClient.builder;
 public class ESRepository implements ITypeaheadRepository {
 	private RestHighLevelClient esRestClient;
 
-	private String esIndexName;
-	private String esFieldName;
+	private ESConfig esConfig;
 
-	public ESRepository(Environment env) {
-		String host = env.getProperty(ES_HOST, DEFAULT_HOST);
-		String port = env.getProperty(ES_PORT, DEFAULT_PORT);
-		String scheme = env.getProperty(ES_SCHEME, DEFAULT_SCHEME);
-
-		esIndexName = env.getProperty(ES_INDEX, DEFAULT_ES_INDEX);
-		esFieldName = env.getProperty(ES_FIELD_NAME, DEFAULT_ES_FIELD);
-
-		RestClientBuilder restClientBuilder = builder(new HttpHost(host, parseInt(port), scheme));
+	@Autowired
+	public ESRepository(ESConfig esConfig) {
+		this.esConfig = esConfig;
+		RestClientBuilder restClientBuilder = builder(
+				new HttpHost(esConfig.getHost(), parseInt(esConfig.getPort()), esConfig.getScheme()));
 		esRestClient = new RestHighLevelClient(restClientBuilder);
 	}
 
 	@SneakyThrows
 	public List<String> autocomplete(String prefix, int suggestionCount) {
-		CompletionSuggestionBuilder csb = SuggestBuilders.completionSuggestion(esFieldName)
+		CompletionSuggestionBuilder csb = SuggestBuilders.completionSuggestion(esConfig.getESCompletionFieldName())
 														 .skipDuplicates(true)
 														 .size(suggestionCount);
 
 		SuggestBuilder sb = new SuggestBuilder().setGlobalText(prefix);
-		sb.addSuggestion(esFieldName, csb);
+		sb.addSuggestion(esConfig.getESCompletionFieldName(), csb);
 
-		SearchRequest req = new SearchRequest(esIndexName);
+		SearchRequest req = new SearchRequest(esConfig.getESIndexName());
 		req.source().suggest(sb);
 
 		SearchResponse response = esRestClient.search(req, DEFAULT);

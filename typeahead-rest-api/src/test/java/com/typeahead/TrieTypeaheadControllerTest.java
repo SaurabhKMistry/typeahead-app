@@ -1,7 +1,7 @@
 package com.typeahead;
 
 import com.typeahead.controller.TypeaheadController;
-import com.typeahead.service.TrieService;
+import com.typeahead.trie.TrieService;
 import org.junit.jupiter.api.BeforeAll;
 
 import static org.mockito.Mockito.mock;

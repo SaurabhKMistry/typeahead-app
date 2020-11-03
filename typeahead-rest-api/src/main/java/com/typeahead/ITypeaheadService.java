@@ -1,8 +1,7 @@
-package com.typeahead.repository;
+package com.typeahead;
 
 import java.util.Collection;
-import java.util.List;
 
-public interface ITypeaheadRepository {
+public interface ITypeaheadService {
 	Collection<String> autocomplete(String prefix, int suggestionCount);
 }

@@ -1,6 +1,6 @@
 package com.typeahead;
 
-import com.typeahead.data.loader.ITypeaheadDataLoader;
+import com.typeahead.data.loader.AbstractTypeaheadDataLoaderBase;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -11,9 +11,6 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 import java.util.Map;
@@ -34,14 +31,6 @@ public class TypeaheadApplication implements CommandLineRunner {
 	}
 
 	@Bean
-	RedisTemplate<String, String> redisTemplate() {
-		RedisTemplate<String, String> redisTemplate = new RedisTemplate<>();
-		redisTemplate.setConnectionFactory(new JedisConnectionFactory());
-		redisTemplate.setKeySerializer(new StringRedisSerializer());
-		return redisTemplate;
-	}
-
-	@Bean
 	public LocalValidatorFactoryBean validator() {
 		LocalValidatorFactoryBean bean = new LocalValidatorFactoryBean();
 		bean.setValidationMessageSource(messageSource());
@@ -59,11 +48,17 @@ public class TypeaheadApplication implements CommandLineRunner {
 	@Override
 	public void run(String... args) throws Exception {
 		try {
-			Map<String, ITypeaheadDataLoader> map = appCxt.getBeansOfType(ITypeaheadDataLoader.class);
-			ITypeaheadDataLoader dataLoader = (ITypeaheadDataLoader) map.values().toArray()[0];
+			// because of cyclic dependency issue in spring, getting data loader from application context
+			// instead of using @Autowired
+			AbstractTypeaheadDataLoaderBase dataLoader = getDataLoaderFromApplicationContext();
 			dataLoader.loadData();
 		} catch (Exception e) {
 			log.error("Error while loading data. Error --> " + e, e);
 		}
+	}
+
+	private AbstractTypeaheadDataLoaderBase getDataLoaderFromApplicationContext() {
+		Map<String, AbstractTypeaheadDataLoaderBase> map = appCxt.getBeansOfType(AbstractTypeaheadDataLoaderBase.class);
+		return (AbstractTypeaheadDataLoaderBase) map.values().toArray()[0];
 	}
 }

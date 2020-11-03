@@ -12,7 +12,7 @@ public class TrieBuilder {
 		this.trie = trie;
 	}
 
-	public void buildTrie(Iterable<TrieEntity> entities) {
+	public void buildTrie(Iterable<TriePhrase> entities) {
 		entities.forEach(trieEntity -> trie.insert(trieEntity.getWord(), trieEntity.getScore()));
 	}
 }

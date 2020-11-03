@@ -20,12 +20,12 @@ class TrieBuilderTest {
 
 	@Test
 	void buildTrie() {
-		List<TrieEntity> wordsInDB = of(new TrieEntity("word1"),
-										new TrieEntity("word2"),
-										new TrieEntity("word3"));
+		List<TriePhrase> phrasesInDB = of(new TriePhrase("word1"),
+										  new TriePhrase("word2"),
+										  new TriePhrase("word3"));
 		doNothing().when(mockTrie).insert(anyString(), anyInt());
 
-		trieBuilder.buildTrie(wordsInDB);
+		trieBuilder.buildTrie(phrasesInDB);
 
 		verify(mockTrie, times(3)).insert(anyString(), anyInt());
 	}

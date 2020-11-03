@@ -1,4 +1,6 @@
-package com.typeahead.repository;
+package com.typeahead.trie;
+
+import com.typeahead.ITypeaheadRepository;
 
 import java.util.List;
 

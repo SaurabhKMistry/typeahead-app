@@ -1,8 +1,6 @@
 package com.typeahead;
 
 import com.typeahead.controller.TypeaheadController;
-import com.typeahead.service.ESService;
-import com.typeahead.service.ITypeaheadService;
 import org.hamcrest.collection.IsIterableContainingInOrder;
 import org.junit.jupiter.api.Test;
 

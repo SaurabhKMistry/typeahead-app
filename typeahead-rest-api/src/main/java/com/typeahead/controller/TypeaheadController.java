@@ -1,6 +1,6 @@
 package com.typeahead.controller;
 
-import com.typeahead.service.ITypeaheadService;
+import com.typeahead.ITypeaheadService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;

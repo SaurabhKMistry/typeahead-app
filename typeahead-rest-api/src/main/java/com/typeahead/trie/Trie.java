@@ -22,16 +22,16 @@ public class Trie implements Comparator<TrieNode> {
 		root = new TrieNode(ROOT_NODE_DATA);
 	}
 
-	public void insert(String word) {
-		insert(word, DEFAULT_SCORE);
+	public void insert(String phrase) {
+		insert(phrase, DEFAULT_SCORE);
 	}
 
-	public void insert(String word, int score) {
-		Optional<TrieNode> node = search(word);
+	public void insert(String phrase, int score) {
+		Optional<TrieNode> node = search(phrase);
 		node.orElseGet(() -> {
 			TrieNode curr = root;
 			TrieNode prev;
-			for (char ch : word.toCharArray()) {
+			for (char ch : phrase.toCharArray()) {
 				prev = curr;
 				TrieNode child = curr.getChild(ch);
 				if (child != null) {

@@ -1,7 +1,7 @@
 package com.typeahead;
 
 import com.typeahead.controller.TypeaheadController;
-import com.typeahead.service.ESService;
+import com.typeahead.es.ESService;
 import org.junit.jupiter.api.BeforeAll;
 
 import static org.mockito.Mockito.mock;
