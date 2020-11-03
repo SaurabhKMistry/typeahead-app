@@ -34,7 +34,7 @@ public class TrieNode {
 		return null;
 	}
 
-	protected List<TrieNode> getWords() {
+	protected List<TrieNode> getPhrases() {
 		List<TrieNode> list = new ArrayList<>();
 		if (isEnd) {
 			list.add(this);
@@ -43,7 +43,7 @@ public class TrieNode {
 		if (children != null) {
 			for (TrieNode child : children) {
 				if (child != null) {
-					list.addAll(child.getWords());
+					list.addAll(child.getPhrases());
 				}
 			}
 		}

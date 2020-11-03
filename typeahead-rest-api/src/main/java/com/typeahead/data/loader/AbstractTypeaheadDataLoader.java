@@ -15,12 +15,6 @@ public abstract class AbstractTypeaheadDataLoader extends AbstractTypeaheadDataL
 	protected AtomicInteger numDocLoaded = new AtomicInteger();
 
 	@Override
-	public void loadData() {
-		initialize();
-		startLoading();
-		cleanup();
-	}
-
 	protected void startLoading() {
 		int dataFileCount = getDataFileCount();
 		for (int i = 1; i <= dataFileCount; i++) {
@@ -33,8 +27,6 @@ public abstract class AbstractTypeaheadDataLoader extends AbstractTypeaheadDataL
 			}
 		}
 	}
-
-	protected abstract void cleanup();
 
 	private void processCSVDataFile(String csvDataFileName) throws IOException {
 		ClassPathResource csvDataFileResource = new ClassPathResource(csvDataFileName);

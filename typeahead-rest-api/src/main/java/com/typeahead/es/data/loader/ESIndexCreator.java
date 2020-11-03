@@ -6,6 +6,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.io.ClassPathResource;
@@ -63,7 +64,7 @@ class ESIndexCreator {
 
 	void createIndex() throws Exception {
 		for (int i = 0; i < ES_RETRY_CREATE_INDEX_COUNT; i++) {
-			if (createIndexInternal(httpClient, httpPut, i)) {
+			if (createIndexInternal(httpClient, httpPut, i + 1)) {
 				break;
 			}
 		}
@@ -74,7 +75,7 @@ class ESIndexCreator {
 		try {
 			executeCreateIndexRequest(httpClient, httpPutObj);
 			return true;
-		} catch (Exception e) {
+		} catch (IOException e) {
 			log.info("Tried " + retryCount + " times. Will try again after " + RETRY_REQ_WAIT_INTERVAL + " msecs");
 			Thread.sleep(RETRY_REQ_WAIT_INTERVAL);
 			if (retryCount == ES_RETRY_CREATE_INDEX_COUNT - 1) {
@@ -86,10 +87,13 @@ class ESIndexCreator {
 
 	private void executeCreateIndexRequest(CloseableHttpClient httpClient, HttpPut httpPut)
 	throws IOException {
-		log.info("Creating index [" + esConfig.getESIndexName() + "]");
+		String indexName = esConfig.getESIndexName();
+		log.info("Creating index [" + indexName + "]");
 		CloseableHttpResponse httpResponse = httpClient.execute(httpPut);
 		if (httpResponse.getStatusLine().getStatusCode() == SC_OK) {
-			log.info("Index [" + esConfig.getESIndexName() + "] created successfully");
+			log.info("Index [" + indexName + "] created successfully");
+		} else {
+			throw new BeanInitializationException("Index [" + indexName + "] already exists!");
 		}
 	}
 }

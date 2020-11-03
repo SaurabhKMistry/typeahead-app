@@ -14,9 +14,18 @@ public abstract class AbstractTypeaheadDataLoaderBase {
 		return "100K_names_" + index + ".csv";
 	}
 
-	public abstract void loadData();
+	public void loadData() {
+		if (initialize()) {
+			startLoading();
+			cleanup();
+		}
+	}
 
-	protected abstract void initialize();
+	protected abstract boolean initialize();
+
+	protected abstract void startLoading();
+
+	protected abstract void cleanup();
 
 	protected int getDataFileCount() {
 		int dataFileCount = 0;

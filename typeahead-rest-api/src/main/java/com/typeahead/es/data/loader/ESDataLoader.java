@@ -4,6 +4,7 @@ import com.typeahead.data.loader.AbstractTypeaheadConcurrentDataLoader;
 import com.typeahead.es.common.ESConfig;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.env.Environment;
@@ -39,10 +40,24 @@ public class ESDataLoader extends AbstractTypeaheadConcurrentDataLoader {
 
 	@SneakyThrows
 	@Override
-	public void initialize() {
-		threadPool = Executors.newFixedThreadPool(getDataFileCount());
-		waitUntilESStarted();
-		esIndexCreator.createIndex();
+	public boolean initialize() {
+		try {
+			threadPool = Executors.newFixedThreadPool(getDataFileCount());
+			waitUntilESStarted();
+			esIndexCreator.createIndex();
+		} catch (BeanInitializationException e) {
+			log.info(e.getMessage());
+			return false;
+		} catch (Exception e) {
+			log.error("Typeahead system did not start due to error in loading data. " + e.getMessage(), e);
+			System.exit(-1);
+		}
+		return true;
+	}
+
+	private void waitUntilESStarted() throws InterruptedException {
+		log.info("Let elastic search warm up for " + esConfig.getESWarmupInterval() + " ms before bulk loading data");
+		sleep(parseLong(esConfig.getESWarmupInterval()));
 	}
 
 	@Override
@@ -53,10 +68,5 @@ public class ESDataLoader extends AbstractTypeaheadConcurrentDataLoader {
 	@Override
 	public Runnable getDataLoaderTask(String csvFileName, ESConfig esConfig) {
 		return new ESDataLoaderTask(csvFileName, esConfig);
-	}
-
-	private void waitUntilESStarted() throws InterruptedException {
-		log.info("Let elastic search warm up for " + esConfig.getESWarmupInterval() + " ms before bulk loading data");
-		sleep(parseLong(esConfig.getESWarmupInterval()));
 	}
 }

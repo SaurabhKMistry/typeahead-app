@@ -7,6 +7,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.typeahead.common.TypeaheadConstants.TYPEAHEAD_POWERED_BY_REDIS;
@@ -27,8 +28,13 @@ public class RedisDataLoader extends AbstractTypeaheadDataLoader {
 	}
 
 	@Override
-	protected void initialize() {
+	protected boolean initialize() {
+		Set<String> autocompletions = redisRepo.autocomplete("a", 2);
+		if(autocompletions != null && !autocompletions.isEmpty()){
+			return false;
+		}
 		log.info("Starting Redis Data Loader...");
+		return true;
 	}
 
 	@Override

@@ -26,8 +26,9 @@ public class TrieDataLoader extends AbstractTypeaheadDataLoader {
 	}
 
 	@Override
-	protected void initialize() {
+	protected boolean initialize() {
 		log.info("Starting Trie Data Loader...");
+		return true;
 	}
 
 	@Override

@@ -18,12 +18,6 @@ public abstract class AbstractTypeaheadConcurrentDataLoader extends AbstractType
 	protected ExecutorService threadPool;
 
 	@Override
-	public void loadData() {
-		initialize();
-		startLoading();
-		cleanup();
-	}
-
 	public void startLoading() {
 		log.info("Starting " + getDataLoaderDisplayName() + "...");
 		int dataFileCount = getDataFileCount();
@@ -34,6 +28,7 @@ public abstract class AbstractTypeaheadConcurrentDataLoader extends AbstractType
 		}
 	}
 
+	@Override
 	public void cleanup() {
 		waitUntilAllThreadsCompleted();
 		log.info(getDataLoaderDisplayName() + " completed successfully...!!! You can use the system now");

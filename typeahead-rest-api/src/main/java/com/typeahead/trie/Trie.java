@@ -78,7 +78,7 @@ public class Trie implements Comparator<TrieNode> {
 				return new ArrayList<>();
 			}
 		}
-		List<TrieNode> suggestions = lastNode.getWords();
+		List<TrieNode> suggestions = lastNode.getPhrases();
 		suggestions.sort(this);
 
 		if (suggestions.size() > suggestionCount) {
