@@ -11,7 +11,6 @@ import org.springframework.stereotype.Repository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.typeahead.common.TypeaheadPropertyKeys.TYPEAHEAD_TOP_SUGGESTION_TO_SHOW_COUNT;
 import static java.lang.String.valueOf;
@@ -27,8 +26,8 @@ public class RedisRepository implements ITypeaheadRepository {
 	private Environment env;
 
 	@Autowired
-	public RedisRepository(StringRedisTemplate stringRedisTemplate, Environment env) {
-		this.redisSortedSet = stringRedisTemplate.opsForZSet();
+	public RedisRepository(StringRedisTemplate redisTemplate, Environment env) {
+		this.redisSortedSet = redisTemplate.opsForZSet();
 		this.env = env;
 	}
 

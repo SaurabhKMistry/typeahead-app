@@ -12,6 +12,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.typeahead.common.TypeaheadConstants.TYPEAHEAD_POWERED_BY_REDIS;
 import static com.typeahead.common.TypeaheadPropertyKeys.TYPEAHEAD_POWERED_BY;
+import static com.typeahead.common.TypeaheadPropertyKeys.TYPEAHEAD_TOP_SUGGESTION_TO_SHOW_COUNT;
 
 @Slf4j
 @Component
@@ -29,8 +30,9 @@ public class RedisDataLoader extends AbstractTypeaheadDataLoader {
 
 	@Override
 	protected boolean initialize() {
-		Set<String> autocompletions = redisRepo.autocomplete("a", 2);
-		if(autocompletions != null && !autocompletions.isEmpty()){
+		String suggestionsToShowCountStr = environment.getProperty(TYPEAHEAD_TOP_SUGGESTION_TO_SHOW_COUNT);
+		Set<String> autoSuggestions = redisRepo.autocomplete("a", 1);
+		if(autoSuggestions != null && !autoSuggestions.isEmpty()){
 			return false;
 		}
 		log.info("Starting Redis Data Loader...");

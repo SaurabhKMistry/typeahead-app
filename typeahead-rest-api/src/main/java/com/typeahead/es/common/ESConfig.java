@@ -6,6 +6,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import static com.typeahead.common.TypeaheadPropertyKeys.*;
+import static com.typeahead.es.common.ESConstants.*;
 import static java.lang.String.valueOf;
 import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_SINGLETON;
 
