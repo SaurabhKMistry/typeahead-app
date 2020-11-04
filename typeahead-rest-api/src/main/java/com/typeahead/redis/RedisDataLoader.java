@@ -41,12 +41,15 @@ public class RedisDataLoader extends AbstractTypeaheadDataLoader {
 
 	@Override
 	protected void cleanup() {
+		redisRepo.cleanup();
 		log.info("Redis Data Loader completed loading " + numDocLoaded + " docs...!!! You can use the system now");
 	}
 
 	@Override
 	protected Runnable getDataLoaderTask(String line) {
-		return () -> redisRepo.acceptPhrase(line, DEFAULT_SCORE);
+		return () -> {
+			redisRepo.acceptPhrase(line, DEFAULT_SCORE);
+		};
 	}
 
 	@Override

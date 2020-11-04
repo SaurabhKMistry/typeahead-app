@@ -53,7 +53,9 @@ public class TypeaheadApplication implements CommandLineRunner {
 		standaloneConfig.setHostName(host);
 		standaloneConfig.setPort(parseInt(port));
 
-		return new JedisConnectionFactory(standaloneConfig);
+		JedisConnectionFactory jedisConnectionFactory = new JedisConnectionFactory(standaloneConfig);
+		jedisConnectionFactory.setConvertPipelineAndTxResults(false);
+		return jedisConnectionFactory;
 	}
 
 	@Bean

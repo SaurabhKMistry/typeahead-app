@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 public abstract class AbstractTypeaheadDataLoader extends AbstractTypeaheadDataLoaderBase {
-	private static final int PUBLISH_STATUS_AFTER_DOCS = 10_000;
+	private static final int PUBLISH_STATUS_AFTER_DOCS = 25_000;
 
 	protected AtomicInteger numDocLoaded = new AtomicInteger();
 

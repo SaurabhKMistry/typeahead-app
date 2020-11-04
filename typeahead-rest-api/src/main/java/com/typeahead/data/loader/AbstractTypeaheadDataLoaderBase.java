@@ -15,10 +15,13 @@ public abstract class AbstractTypeaheadDataLoaderBase {
 	}
 
 	public void loadData() {
+		long t1 = System.currentTimeMillis();
 		if (initialize()) {
 			startLoading();
 			cleanup();
 		}
+		long t2 = System.currentTimeMillis();
+		log.info("Time taken for complete data load is " + (t2 - t1) / 1000 + " secs");
 	}
 
 	protected abstract boolean initialize();

@@ -7,14 +7,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static java.lang.Thread.currentThread;
-import static java.util.concurrent.TimeUnit.MINUTES;
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 @Slf4j
 public abstract class AbstractTypeaheadConcurrentDataLoader extends AbstractTypeaheadDataLoaderBase {
-	private static final int AWAIT_TERMINATION_TIMEOUT_IN_MINS = 2;
-
 	protected ESConfig esConfig;
-
 	protected ExecutorService threadPool;
 
 	@Override
@@ -34,14 +31,10 @@ public abstract class AbstractTypeaheadConcurrentDataLoader extends AbstractType
 		log.info(getDataLoaderDisplayName() + " completed successfully...!!! You can use the system now");
 	}
 
-	public abstract String getDataLoaderDisplayName();
-
-	public abstract Runnable getDataLoaderTask(String csvFileName, ESConfig esConfig);
-
 	protected void waitUntilAllThreadsCompleted() {
 		threadPool.shutdown();
 		try {
-			if (!threadPool.awaitTermination(AWAIT_TERMINATION_TIMEOUT_IN_MINS, MINUTES)) {
+			if (!threadPool.awaitTermination(Long.MAX_VALUE, SECONDS)) {
 				threadPool.shutdownNow();
 			}
 		} catch (InterruptedException ex) {
@@ -49,4 +42,8 @@ public abstract class AbstractTypeaheadConcurrentDataLoader extends AbstractType
 			currentThread().interrupt();
 		}
 	}
+
+	public abstract String getDataLoaderDisplayName();
+
+	public abstract Runnable getDataLoaderTask(String csvFileName, ESConfig esConfig);
 }
